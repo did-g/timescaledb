@@ -44,17 +44,19 @@
 
 #if PG11
 #if 0
+#endif
 /* ***************************** 
 commit fb466d7b5dbe73f318324cada80203522f46401f
 Author: Tom Lane <tgl@sss.pgh.pa.us>
 Date:   Tue Sep 4 13:45:35 2018 -0400
 
     Fully enforce uniqueness of constraint names.
+
+pg compile 29 errors
 */
 #define ConstraintRelidIndexId ConstraintRelidTypidNameIndexId
 
 
-#endif
 /* ***************************** 
 commit c9c875a28fa6cbc38c227fb9e656dd7be948166f
 Author: Teodor Sigaev <teodor@sigaev.ru>
@@ -63,7 +65,6 @@ Date:   Thu Apr 12 13:02:45 2018 +0300
     Rename IndexInfo.ii_KeyAttrNumbers array
 
 pg compile 14 errors
-
 */
 #define ii_KeyAttrNumbers ii_IndexAttrNumbers
 
@@ -219,9 +220,10 @@ Date:   Fri Jan 5 15:18:03 2018 -0500
 
     Factor error generation out of ExecPartitionCheck.
 */
+#if 0
 #define  ExecConstraints(resultRelInfo, slot, estate) \
 	ExecConstraints(resultRelInfo, slot, estate, true);
-
+#endif
 
 /* *****************************
 commit 4bd1994650fddf49e717e35f1930d62208845974
