@@ -216,10 +216,14 @@ timescaledb_CopyFrom(CopyChunkState *ccstate, List *range_table, Hypertable *ht)
 	estate->es_range_table = range_table;
 
 	/* Set up a tuple slot too */
+#if PG11
+	myslot = ExecInitExtraTupleSlot(estate, tupDesc);
+#else
 	myslot = ExecInitExtraTupleSlot(estate);
 	ExecSetSlotDescriptor(myslot, tupDesc);
+#endif
 	/* Triggers might need a slot as well */
-	estate->es_trig_tuple_slot = ExecInitExtraTupleSlot(estate);
+	estate->es_trig_tuple_slot = ExecInitExtraTupleSlotComp(estate);
 
 	/* Prepare to catch AFTER triggers. */
 	AfterTriggerBeginQuery();

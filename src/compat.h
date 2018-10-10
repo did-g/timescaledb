@@ -138,20 +138,6 @@ Date:   Mon Feb 19 16:59:37 2018 -0300
 
 
 /* ***************************** 
-commit ad7dbee368a7cd9e595d2a957be784326b08c943
-Author: Andres Freund <andres@anarazel.de>
-Date:   Fri Feb 16 21:17:38 2018 -0800
-
-    Allow tupleslots to have a fixed tupledesc, use in executor nodes.
-*/    
-#define MakeTupleTableSlot() \
-	MakeTupleTableSlot(NULL)
-
-#define ExecInitExtraTupleSlot(a) \
-	ExecInitExtraTupleSlot(a, NULL)
-
-
-/* ***************************** 
 commit 04700b685f31508036456bea4d92533e5ceee9d6
 Author: Peter Eisentraut <peter_e@gmx.net>
 Date:   Fri Feb 16 20:44:15 2018 -0500
@@ -160,7 +146,22 @@ Date:   Fri Feb 16 20:44:15 2018 -0500
 */
 #define PreventTransactionChain PreventInTransactionBlock
 
+
 #endif
+/* ***************************** 
+commit ad7dbee368a7cd9e595d2a957be784326b08c943
+Author: Andres Freund <andres@anarazel.de>
+Date:   Fri Feb 16 21:17:38 2018 -0800
+
+    Allow tupleslots to have a fixed tupledesc, use in executor nodes.
+
+*/    
+#define MakeTupleTableSlotComp() \
+	MakeTupleTableSlot(NULL)
+
+#define ExecInitExtraTupleSlotComp(a) \
+	ExecInitExtraTupleSlot(a, NULL)
+
 
 /* ***************************** 
 commit 8237f27b504ff1d1e2da7ae4c81a7f72ea0e0e3e
@@ -234,6 +235,7 @@ Date:   Tue Feb 14 17:34:19 2012 -0500
 #undef PG10
 #define PG10 (1)
 #endif
+#endif
 
 #if PG10
 
@@ -258,7 +260,12 @@ Date:   Tue Feb 14 17:34:19 2012 -0500
 #define WaitLatchCompat(latch, wakeEvents, timeout) \
 	WaitLatch(latch, wakeEvents, timeout, PG_WAIT_EXTENSION)
 
+// XXXX
+#if 0
+#define ExecInitExtraTupleSlotComp(a) \
+	ExecInitExtraTupleSlot(a)
 #endif
+
 #elif PG96
 
 #define ExecARInsertTriggersCompat(estate, result_rel_info, tuple, recheck_indexes) \
@@ -281,6 +288,9 @@ Date:   Tue Feb 14 17:34:19 2012 -0500
 	 ExecBuildProjectionInfo((List *)ExecInitExpr((Expr *) tl, NULL), exprContext, slot, inputdesc)
 #define WaitLatchCompat(latch, wakeEvents, timeout) \
 	WaitLatch(latch, wakeEvents, timeout)
+
+#define ExecInitExtraTupleSlotComp(a) \
+	ExecInitExtraTupleSlot(a)
 #else
 
 #error "Unsupported PostgreSQL version"

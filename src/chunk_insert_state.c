@@ -519,7 +519,7 @@ chunk_insert_state_create(Chunk *chunk, ChunkDispatch *dispatch)
 
 	/* Need a tuple table slot to store converted tuples */
 	if (state->tup_conv_map)
-		state->slot = MakeTupleTableSlot();
+		state->slot = MakeTupleTableSlotComp();
 
 	heap_close(parent_rel, AccessShareLock);
 
