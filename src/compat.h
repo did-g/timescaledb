@@ -14,10 +14,13 @@
 
 #define is_supported_pg_version_96(version) ((version >= 90603) && (version < 100000))
 #define is_supported_pg_version_10(version) ((version >= 100002) && (version < 110000))
-#define is_supported_pg_version(version) (is_supported_pg_version_96(version) || is_supported_pg_version_10(version))
+#define is_supported_pg_version_11(version) ((version >= 110000) && (version < 120000))
+#define is_supported_pg_version(version) (is_supported_pg_version_96(version) || is_supported_pg_version_10(version) || is_supported_pg_version_11(version))
 
 #define PG96 is_supported_pg_version_96(PG_VERSION_NUM)
 #define PG10 is_supported_pg_version_10(PG_VERSION_NUM)
+#define PG11 is_supported_pg_version_11(PG_VERSION_NUM)
+#define PG10_11 (is_supported_pg_version_11(PG_VERSION_NUM) || is_supported_pg_version_10(PG_VERSION_NUM))
 
 /* TupleDescAttr was only backpatched to 9.6.5. Make it work under 9.6.3 and 9.6.4 */
 #if ((PG_VERSION_NUM >= 90603) && PG_VERSION_NUM < 90605)
@@ -33,8 +36,28 @@
 #define TupleDescAttr(a, i) ((a)->attrs[(i)])
 #endif
 
-#if PG10
+#ifdef PG10_11
 
+
+
+#if PG11
+/* *****************************
+commit 4bd1994650fddf49e717e35f1930d62208845974
+Author: Tom Lane <tgl@sss.pgh.pa.us>
+Date:   Mon Sep 18 15:21:23 2017 -0400
+
+    Make DatumGetFoo/PG_GETARG_FOO/PG_RETURN_FOO macro names more consistent.
+*/
+#define PG_RETURN_JSONB(x) PG_RETURN_JSONB_P(x)
+
+#define adjust_appendrel_attrs(a, b, c) \
+	adjust_appendrel_attrs((a), (b), 1, &(c))
+
+#endif
+
+#undef PG10
+#define PG10 (1)
+#if PG10
 #define ExecARInsertTriggersCompat(estate, result_rel_info, tuple, recheck_indexes) \
 	ExecARInsertTriggers(estate, result_rel_info, tuple, recheck_indexes, NULL)
 #define ExecASInsertTriggersCompat(estate, result_rel_info) \
@@ -56,6 +79,7 @@
 #define WaitLatchCompat(latch, wakeEvents, timeout) \
 	WaitLatch(latch, wakeEvents, timeout, PG_WAIT_EXTENSION)
 
+#endif
 #elif PG96
 
 #define ExecARInsertTriggersCompat(estate, result_rel_info, tuple, recheck_indexes) \
