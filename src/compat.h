@@ -88,23 +88,26 @@ Author: Andrew Dunstan <andrew@dunslane.net>
 Date:   Wed Mar 28 10:43:52 2018 +1030
 
     Fast ALTER TABLE ADD COLUMN with a non-NULL default
+
 */
 #define heap_attisnull(a,b) \
 	heap_attisnull( a, b, NULL)
 
 
+#endif
 /* ***************************** 
 commit 555ee77a9668e3f1b03307055b5027e13bf1a715
 Author: Alvaro Herrera <alvherre@alvh.no-ip.org>
 Date:   Mon Mar 26 10:43:54 2018 -0300
 
     Handle INSERT .. ON CONFLICT with partitioned tables
+
+pg compile 11 errors
 */
 #define ri_onConflictSetProj ri_onConflict->oc_ProjInfo
 #define  ri_onConflictSetWhere ri_onConflict->oc_WhereClause
 
 
-#endif
 /* ***************************** 
 commit 86f575948c773b0ec5b0f27066e37dd93a7f0a96
 Author: Alvaro Herrera <alvherre@alvh.no-ip.org>

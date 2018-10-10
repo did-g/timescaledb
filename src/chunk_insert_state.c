@@ -209,9 +209,16 @@ create_chunk_result_relation_info(ChunkDispatch *dispatch, Relation rel, Index r
 	rri->ri_WithCheckOptionExprs = rri_orig->ri_WithCheckOptionExprs;
 	rri->ri_junkFilter = rri_orig->ri_junkFilter;
 	rri->ri_projectReturning = rri_orig->ri_projectReturning;
-	rri->ri_onConflictSetProj = rri_orig->ri_onConflictSetProj;
-	rri->ri_onConflictSetWhere = rri_orig->ri_onConflictSetWhere;
-
+#if PG11
+    if ( rri_orig->ri_onConflict != NULL) {
+        rri->ri_onConflict =  makeNode(OnConflictSetState);
+        rri->ri_onConflictSetProj = rri_orig->ri_onConflictSetProj;
+        rri->ri_onConflictSetWhere = rri_orig->ri_onConflictSetWhere;
+    }
+#else
+    rri->ri_onConflictSetProj = rri_orig->ri_onConflictSetProj;
+    rri->ri_onConflictSetWhere = rri_orig->ri_onConflictSetWhere;
+#endif
 	create_chunk_rri_constraint_expr(rri, rel);
 
 	return rri;
@@ -381,7 +388,7 @@ adjust_projections(ChunkInsertState *cis, ChunkDispatch *dispatch, Oid rowtype)
 												   chunk_desc);
 	}
 
-	if (rri->ri_onConflictSetProj != NULL)
+	if (rri->ri_onConflict && rri->ri_onConflictSetProj != NULL)
 	{
 		rri->ri_onConflictSetProj =
 			get_adjusted_projection_info_onconflicupdate(rri->ri_onConflictSetProj,
