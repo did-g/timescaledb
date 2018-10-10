@@ -14,7 +14,6 @@
 #include <catalog/index.h>
 #include <catalog/objectaddress.h>
 #include <catalog/pg_trigger.h>
-#include <catalog/pg_constraint_fn.h>
 #include <catalog/pg_constraint.h>
 #include <commands/copy.h>
 #include <commands/vacuum.h>

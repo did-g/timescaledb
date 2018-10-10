@@ -54,17 +54,20 @@ Date:   Tue Sep 4 13:45:35 2018 -0400
 #define ConstraintRelidIndexId ConstraintRelidTypidNameIndexId
 
 
+#endif
 /* ***************************** 
 commit c9c875a28fa6cbc38c227fb9e656dd7be948166f
 Author: Teodor Sigaev <teodor@sigaev.ru>
 Date:   Thu Apr 12 13:02:45 2018 +0300
 
     Rename IndexInfo.ii_KeyAttrNumbers array
+
+pg compile 14 errors
+
 */
 #define ii_KeyAttrNumbers ii_IndexAttrNumbers
 
 
-#endif
 /* ***************************** 
 commit eed1ce72e1593d3e8b7461d7744808d4d6bf402b
 Author: Magnus Hagander <magnus@hagander.net>

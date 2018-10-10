@@ -15,7 +15,6 @@
 #include <access/xact.h>
 #include <catalog/indexing.h>
 #include <catalog/pg_constraint.h>
-#include <catalog/pg_constraint_fn.h>
 #include <catalog/objectaddress.h>
 #include <commands/tablecmds.h>
 #include <catalog/dependency.h>

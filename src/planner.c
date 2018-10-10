@@ -29,7 +29,6 @@
 #include <optimizer/cost.h>
 #include <tcop/tcopprot.h>
 #include <optimizer/plancat.h>
-#include <catalog/pg_inherits_fn.h>
 #include <nodes/nodeFuncs.h>
 #include "compat-msvc-exit.h"
 
