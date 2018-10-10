@@ -36,12 +36,168 @@
 #define TupleDescAttr(a, i) ((a)->attrs[(i)])
 #endif
 
-
+/* //////////////////////////
+*/
 #ifdef PG10_11
 
 
 
 #if PG11
+#if 0
+/* ***************************** 
+commit fb466d7b5dbe73f318324cada80203522f46401f
+Author: Tom Lane <tgl@sss.pgh.pa.us>
+Date:   Tue Sep 4 13:45:35 2018 -0400
+
+    Fully enforce uniqueness of constraint names.
+*/
+#define ConstraintRelidIndexId ConstraintRelidTypidNameIndexId
+
+
+/* ***************************** 
+commit c9c875a28fa6cbc38c227fb9e656dd7be948166f
+Author: Teodor Sigaev <teodor@sigaev.ru>
+Date:   Thu Apr 12 13:02:45 2018 +0300
+
+    Rename IndexInfo.ii_KeyAttrNumbers array
+*/
+#define ii_KeyAttrNumbers ii_IndexAttrNumbers
+
+
+/* ***************************** 
+commit eed1ce72e1593d3e8b7461d7744808d4d6bf402b
+Author: Magnus Hagander <magnus@hagander.net>
+Date:   Thu Apr 5 18:59:32 2018 +0200
+
+    Allow background workers to bypass datallowconn
+    
+    THis adds a "flags" field to the BackgroundWorkerInitializeConnection()
+    and BackgroundWorkerInitializeConnectionByOid(). For now only one flag,
+    BGWORKER_BYPASS_ALLOWCONN, is defined, which allows the worker to ignore
+    datallowconn.
+*/
+#define BackgroundWorkerInitializeConnection(a,b) \
+	BackgroundWorkerInitializeConnection(a, b, 0)
+#define BackgroundWorkerInitializeConnectionByOid(a, b) \
+	BackgroundWorkerInitializeConnectionByOid(a, b, 0)
+
+
+/* ***************************** 
+commit 16828d5c0273b4fe5f10f42588005f16b415b2d8
+Author: Andrew Dunstan <andrew@dunslane.net>
+Date:   Wed Mar 28 10:43:52 2018 +1030
+
+    Fast ALTER TABLE ADD COLUMN with a non-NULL default
+*/
+#define heap_attisnull(a,b) \
+	heap_attisnull( a, b, NULL)
+
+
+/* ***************************** 
+commit 555ee77a9668e3f1b03307055b5027e13bf1a715
+Author: Alvaro Herrera <alvherre@alvh.no-ip.org>
+Date:   Mon Mar 26 10:43:54 2018 -0300
+
+    Handle INSERT .. ON CONFLICT with partitioned tables
+*/
+#define ri_onConflictSetProj ri_onConflict->oc_ProjInfo
+#define  ri_onConflictSetWhere ri_onConflict->oc_WhereClause
+
+
+/* ***************************** 
+commit 86f575948c773b0ec5b0f27066e37dd93a7f0a96
+Author: Alvaro Herrera <alvherre@alvh.no-ip.org>
+Date:   Fri Mar 23 10:48:22 2018 -0300
+
+    Allow FOR EACH ROW triggers on partitioned tables
+*/
+#define  CreateTrigger(a, b, c, d, e, f, g) \
+    CreateTrigger(a, b, c, d, e, f, InvalidOid, InvalidOid,NULL, g, false)
+
+
+/* ***************************** 
+commit 7a50bb690b4837d29e715293c156cff2fc72885c
+Author: Andres Freund <andres@anarazel.de>
+Date:   Fri Mar 16 23:13:12 2018 -0700
+
+    Add 'unit' parameter to ExplainProperty{Integer,Float}.
+*/
+#define ExplainPropertyInteger(a, b, c) \
+	ExplainPropertyInteger(a, NULL, b, c) 
+
+
+/* ***************************** 
+commit eb7ed3f3063401496e4aa4bd68fa33f0be31a72f
+Author: Alvaro Herrera <alvherre@alvh.no-ip.org>
+Date:   Mon Feb 19 16:59:37 2018 -0300
+
+    Allow UNIQUE indexes on partitioned tables
+*/
+#define DefineIndex(relationId, stmt, indexRelationId, is_alter_table, check_rights, check_not_in_use, skip_build, quiet) \
+	DefineIndex(relationId, stmt, indexRelationId, InvalidOid, InvalidOid, is_alter_table, check_rights, check_not_in_use, skip_build, quiet)
+
+
+/* ***************************** 
+commit ad7dbee368a7cd9e595d2a957be784326b08c943
+Author: Andres Freund <andres@anarazel.de>
+Date:   Fri Feb 16 21:17:38 2018 -0800
+
+    Allow tupleslots to have a fixed tupledesc, use in executor nodes.
+*/    
+#define MakeTupleTableSlot() \
+	MakeTupleTableSlot(NULL)
+
+#define ExecInitExtraTupleSlot(a) \
+	ExecInitExtraTupleSlot(a, NULL)
+
+
+/* ***************************** 
+commit 04700b685f31508036456bea4d92533e5ceee9d6
+Author: Peter Eisentraut <peter_e@gmx.net>
+Date:   Fri Feb 16 20:44:15 2018 -0500
+
+    Rename TransactionChain functions
+*/
+#define PreventTransactionChain PreventInTransactionBlock
+
+
+/* ***************************** 
+commit 8237f27b504ff1d1e2da7ae4c81a7f72ea0e0e3e
+Author: Alvaro Herrera <alvherre@alvh.no-ip.org>
+Date:   Mon Feb 12 19:30:30 2018 -0300
+
+    get_relid_attribute_name is dead, long live get_attname
+    
+    The modern way is to use a missing_ok argument instead of two separate
+    almost-identical routines, so do that.
+*/
+#define get_attname(a,b) \
+	get_attname(a,b, false)
+
+
+/* ***************************** 
+commit 8b9e9644dc6a9bd4b7a97950e6212f63880cf18b
+Author: Peter Eisentraut <peter_e@gmx.net>
+Date:   Sat Dec 2 09:26:34 2017 -0500
+
+    Replace AclObjectKind with ObjectType
+*/
+#define ACL_KIND_CLASS OBJECT_INDEX
+#define ACL_OBJECT_TABLESPACE  OBJECT_TABLESPACE
+
+#endif
+
+/* ***************************** 
+commit 8b08f7d4820fd7a8ef6152a9dd8c6e3cb01e5f99
+Author: Alvaro Herrera <alvherre@alvh.no-ip.org>
+Date:   Fri Jan 19 11:49:22 2018 -0300
+
+    Local partitioned indexes
+
+*/
+#define DefineIndex(relationId, stmt, indexRelationId, is_alter_table, check_rights, check_not_in_use, skip_build, quiet) \
+	DefineIndex(relationId, stmt, indexRelationId, InvalidOid, is_alter_table, check_rights, check_not_in_use, skip_build, quiet)
+
 
 /* *****************************
 commit 19c47e7c820241e1befd975cb4411af7d43e1309
@@ -63,6 +219,13 @@ Date:   Mon Sep 18 15:21:23 2017 -0400
 */
 #define PG_RETURN_JSONB(x) PG_RETURN_JSONB_P(x)
 
+/* ***************************** 
+commit 398f70ec070fe60151584eaa448f04708aa77892
+Author: Tom Lane <tgl@sss.pgh.pa.us>
+Date:   Tue Feb 14 17:34:19 2012 -0500
+
+    Preserve column names in the execution-time tupledesc for a RowExpr.
+*/
 #define adjust_appendrel_attrs(a, b, c) \
 	adjust_appendrel_attrs((a), (b), 1, &(c))
 
@@ -71,6 +234,7 @@ Date:   Mon Sep 18 15:21:23 2017 -0400
 #endif
 
 #if PG10
+
 #define ExecARInsertTriggersCompat(estate, result_rel_info, tuple, recheck_indexes) \
 	ExecARInsertTriggers(estate, result_rel_info, tuple, recheck_indexes, NULL)
 #define ExecASInsertTriggersCompat(estate, result_rel_info) \

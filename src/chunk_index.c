@@ -286,7 +286,7 @@ commit 8b08f7d4820fd7a8ef6152a9dd8c6e3cb01e5f99 (HEAD)
 Author: Alvaro Herrera <alvherre@alvh.no-ip.org>
 Date:   Fri Jan 19 11:49:22 2018 -0300
 */
-						 //InvalidOid, /* parentIndexRelid */
+						 InvalidOid, /* parentIndexRelid */
 #endif
 #if 1
 /* not until 
