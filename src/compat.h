@@ -104,6 +104,7 @@ Date:   Mon Mar 26 10:43:54 2018 -0300
 #define  ri_onConflictSetWhere ri_onConflict->oc_WhereClause
 
 
+#endif
 /* ***************************** 
 commit 86f575948c773b0ec5b0f27066e37dd93a7f0a96
 Author: Alvaro Herrera <alvherre@alvh.no-ip.org>
@@ -113,7 +114,6 @@ Date:   Fri Mar 23 10:48:22 2018 -0300
 */
 #define  CreateTrigger(a, b, c, d, e, f, g) \
     CreateTrigger(a, b, c, d, e, f, InvalidOid, InvalidOid,NULL, g, false)
-#endif
 
 
 /* ***************************** 
