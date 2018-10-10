@@ -14,7 +14,7 @@
 #include <access/htup_details.h>
 #include <utils/memutils.h>
 
-#include "export.h"
+#include "compat.h"
 #include "bgw/scheduler.h"
 
 TS_FUNCTION_INFO_V1(ts_test_job_refresh);

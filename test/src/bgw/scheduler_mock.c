@@ -106,7 +106,7 @@ ts_bgw_db_scheduler_test_main(PG_FUNCTION_ARGS)
 
 	elog(WARNING, "running a test in the background: db=%d ttl=%d", db_oid, ttl);
 
-	BackgroundWorkerInitializeConnectionByOid(db_oid, InvalidOid);
+	BackgroundWorkerInitializeConnectionByOidComp(db_oid, InvalidOid);
 
 	StartTransactionCommand();
 	params_get();

@@ -378,7 +378,7 @@ ts_bgw_job_entrypoint(PG_FUNCTION_ARGS)
 
 	elog(DEBUG1, "started background job %d", job_id);
 
-	BackgroundWorkerInitializeConnectionByOid(db_oid, InvalidOid);
+	BackgroundWorkerInitializeConnectionByOidComp(db_oid, InvalidOid);
 
 	StartTransactionCommand();
 	job = bgw_job_find(job_id, TopMemoryContext);

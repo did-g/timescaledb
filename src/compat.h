@@ -64,6 +64,7 @@ Date:   Thu Apr 12 13:02:45 2018 +0300
 #define ii_KeyAttrNumbers ii_IndexAttrNumbers
 
 
+#endif
 /* ***************************** 
 commit eed1ce72e1593d3e8b7461d7744808d4d6bf402b
 Author: Magnus Hagander <magnus@hagander.net>
@@ -76,13 +77,12 @@ Date:   Thu Apr 5 18:59:32 2018 +0200
     BGWORKER_BYPASS_ALLOWCONN, is defined, which allows the worker to ignore
     datallowconn.
 */
-#define BackgroundWorkerInitializeConnection(a,b) \
-	BackgroundWorkerInitializeConnection(a, b, 0)
-#define BackgroundWorkerInitializeConnectionByOid(a, b) \
-	BackgroundWorkerInitializeConnectionByOid(a, b, 0)
+#define BackgroundWorkerInitializeConnectionComp(a,b) \
+	BackgroundWorkerInitializeConnection((a), (b), 0)
+#define BackgroundWorkerInitializeConnectionByOidComp(a, b) \
+	BackgroundWorkerInitializeConnectionByOid((a), (b), 0)
 
 
-#endif
 /* ***************************** 
 commit 16828d5c0273b4fe5f10f42588005f16b415b2d8
 Author: Andrew Dunstan <andrew@dunslane.net>
@@ -271,6 +271,12 @@ Date:   Tue Feb 14 17:34:19 2012 -0500
 #if 0
 #define ExecInitExtraTupleSlotComp(a) \
 	ExecInitExtraTupleSlot(a)
+
+#define BackgroundWorkerInitializeConnectionComp(a,b) \
+	BackgroundWorkerInitializeConnection((a), (b))
+#define BackgroundWorkerInitializeConnectionByOidComp(a, b) \
+	BackgroundWorkerInitializeConnectionByOid((a), (b))
+
 #endif
 
 #elif PG96
@@ -298,6 +304,12 @@ Date:   Tue Feb 14 17:34:19 2012 -0500
 
 #define ExecInitExtraTupleSlotComp(a) \
 	ExecInitExtraTupleSlot(a)
+
+#define BackgroundWorkerInitializeConnectionComp(a,b) \
+	BackgroundWorkerInitializeConnection((a), (b))
+#define BackgroundWorkerInitializeConnectionByOidComp(a, b) \
+	BackgroundWorkerInitializeConnectionByOid((a), (b))
+
 #else
 
 #error "Unsupported PostgreSQL version"
