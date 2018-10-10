@@ -26,6 +26,13 @@
 #define TupleDescAttrCompat(tupdesc, i) TupleDescAttr(tupdesc, i)
 #endif
 
+#ifndef TupleDescAttr
+/*
+   backport in PG10 commit d34a74dd
+*/
+#define TupleDescAttr(a, i) ((a)->attrs[(i)])
+#endif
+
 #if PG10
 
 #define ExecARInsertTriggersCompat(estate, result_rel_info, tuple, recheck_indexes) \
