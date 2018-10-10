@@ -82,6 +82,7 @@ Date:   Thu Apr 5 18:59:32 2018 +0200
 	BackgroundWorkerInitializeConnectionByOid(a, b, 0)
 
 
+#endif
 /* ***************************** 
 commit 16828d5c0273b4fe5f10f42588005f16b415b2d8
 Author: Andrew Dunstan <andrew@dunslane.net>
@@ -89,12 +90,12 @@ Date:   Wed Mar 28 10:43:52 2018 +1030
 
     Fast ALTER TABLE ADD COLUMN with a non-NULL default
 
+pg compile 19 errors
 */
 #define heap_attisnull(a,b) \
 	heap_attisnull( a, b, NULL)
 
 
-#endif
 /* ***************************** 
 commit 555ee77a9668e3f1b03307055b5027e13bf1a715
 Author: Alvaro Herrera <alvherre@alvh.no-ip.org>
