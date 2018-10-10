@@ -160,6 +160,7 @@ Date:   Fri Feb 16 20:44:15 2018 -0500
 */
 #define PreventTransactionChain PreventInTransactionBlock
 
+#endif
 
 /* ***************************** 
 commit 8237f27b504ff1d1e2da7ae4c81a7f72ea0e0e3e
@@ -170,11 +171,12 @@ Date:   Mon Feb 12 19:30:30 2018 -0300
     
     The modern way is to use a missing_ok argument instead of two separate
     almost-identical routines, so do that.
+
+pg compile 8 errors
 */
-#if 0
 #define get_attname(a,b) \
 	get_attname(a,b, false)
-#endif
+
 
 /* ***************************** 
 commit 8b9e9644dc6a9bd4b7a97950e6212f63880cf18b
@@ -186,7 +188,6 @@ Date:   Sat Dec 2 09:26:34 2017 -0500
 #define ACL_KIND_CLASS OBJECT_INDEX
 #define ACL_OBJECT_TABLESPACE  OBJECT_TABLESPACE
 
-#endif
 
 /* ***************************** 
 commit 8b08f7d4820fd7a8ef6152a9dd8c6e3cb01e5f99
