@@ -126,6 +126,20 @@ Date:   Fri Mar 16 23:13:12 2018 -0700
 	ExplainPropertyInteger(a, NULL, b, c) 
 
 
+#endif
+
+/* ***************************** 
+commit 04700b685f31508036456bea4d92533e5ceee9d6
+Author: Peter Eisentraut <peter_e@gmx.net>
+Date:   Fri Feb 16 20:44:15 2018 -0500
+
+    Rename TransactionChain functions
+
+pg compile 9 errors
+*/
+#define PreventTransactionChain PreventInTransactionBlock
+
+
 /* ***************************** 
 commit eb7ed3f3063401496e4aa4bd68fa33f0be31a72f
 Author: Alvaro Herrera <alvherre@alvh.no-ip.org>
@@ -136,18 +150,6 @@ Date:   Mon Feb 19 16:59:37 2018 -0300
 #define DefineIndex(relationId, stmt, indexRelationId, is_alter_table, check_rights, check_not_in_use, skip_build, quiet) \
 	DefineIndex(relationId, stmt, indexRelationId, InvalidOid, InvalidOid, is_alter_table, check_rights, check_not_in_use, skip_build, quiet)
 
-
-/* ***************************** 
-commit 04700b685f31508036456bea4d92533e5ceee9d6
-Author: Peter Eisentraut <peter_e@gmx.net>
-Date:   Fri Feb 16 20:44:15 2018 -0500
-
-    Rename TransactionChain functions
-*/
-#define PreventTransactionChain PreventInTransactionBlock
-
-
-#endif
 /* ***************************** 
 commit ad7dbee368a7cd9e595d2a957be784326b08c943
 Author: Andres Freund <andres@anarazel.de>
@@ -197,10 +199,12 @@ Date:   Fri Jan 19 11:49:22 2018 -0300
 
     Local partitioned indexes
 
+    Revert
 */
+#if 0
 #define DefineIndex(relationId, stmt, indexRelationId, is_alter_table, check_rights, check_not_in_use, skip_build, quiet) \
 	DefineIndex(relationId, stmt, indexRelationId, InvalidOid, is_alter_table, check_rights, check_not_in_use, skip_build, quiet)
-
+#endif
 
 /* *****************************
 commit 19c47e7c820241e1befd975cb4411af7d43e1309

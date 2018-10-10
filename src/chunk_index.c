@@ -297,6 +297,7 @@ Date:   Mon Feb 19 16:59:37 2018 -0300
     Allow UNIQUE indexes on partitioned tables
 */
 						 //InvalidOid, /* parentConstraintId */
+						 InvalidOid, /* parentConstraintId */
 #endif
 						
 		  				 relFileNode, 
@@ -310,7 +311,7 @@ Date:   Mon Feb 19 16:59:37 2018 -0300
                          reloptions, 
                          flags, constr_flags, 
 //                         allow_system_table_mods, if_not_exists, NULL); 
-                          allow_system_table_mods, is_internal); 
+                          allow_system_table_mods, is_internal, NULL); 
 }
 
 /*
