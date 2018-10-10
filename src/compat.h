@@ -114,6 +114,7 @@ Date:   Fri Mar 23 10:48:22 2018 -0300
 #define  CreateTrigger(a, b, c, d, e, f, g) \
     CreateTrigger(a, b, c, d, e, f, InvalidOid, InvalidOid,NULL, g, false)
 
+#endif
 
 /* ***************************** 
 commit 7a50bb690b4837d29e715293c156cff2fc72885c
@@ -125,8 +126,6 @@ Date:   Fri Mar 16 23:13:12 2018 -0700
 #define ExplainPropertyInteger(a, b, c) \
 	ExplainPropertyInteger(a, NULL, b, c) 
 
-
-#endif
 
 /* ***************************** 
 commit 04700b685f31508036456bea4d92533e5ceee9d6
