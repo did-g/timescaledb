@@ -43,7 +43,7 @@ ORDER BY MetricMinuteTs DESC;
                ->  Sort
                      Sort Key: (time_bucket('@ 1 min'::interval, hyper."time")) DESC
                      ->  Result
-                           ->  Append
+                           ->  Parallel Append
                                  ->  Parallel Seq Scan on hyper
                                        Filter: (("time" >= 'Thu Jan 04 00:00:00 2001'::timestamp without time zone) AND ("time" <= 'Fri Jan 05 01:00:00 2001'::timestamp without time zone))
                                  ->  Parallel Seq Scan on _hyper_1_1_chunk
@@ -66,7 +66,7 @@ ORDER BY MetricMinuteTs DESC;
                ->  Sort
                      Sort Key: (date_trunc('minute'::text, hyper."time")) DESC
                      ->  Result
-                           ->  Append
+                           ->  Parallel Append
                                  ->  Parallel Seq Scan on hyper
                                        Filter: (("time" >= 'Thu Jan 04 00:00:00 2001'::timestamp without time zone) AND ("time" <= 'Fri Jan 05 01:00:00 2001'::timestamp without time zone))
                                  ->  Parallel Seq Scan on _hyper_1_1_chunk
@@ -97,7 +97,7 @@ ORDER BY MetricMinuteTs DESC;
                ->  Partial HashAggregate
                      Group Key: time_bucket('@ 1 min'::interval, hyper."time")
                      ->  Result
-                           ->  Append
+                           ->  Parallel Append
                                  ->  Parallel Seq Scan on hyper
                                        Filter: (("time" >= 'Thu Jan 04 00:00:00 2001'::timestamp without time zone) AND ("time" <= 'Fri Jan 05 01:00:00 2001'::timestamp without time zone))
                                  ->  Parallel Seq Scan on _hyper_1_1_chunk
@@ -120,7 +120,7 @@ ORDER BY MetricMinuteTs DESC, metricid;
                ->  Partial HashAggregate
                      Group Key: time_bucket('@ 1 hour'::interval, hyper."time"), hyper.metricid
                      ->  Result
-                           ->  Append
+                           ->  Parallel Append
                                  ->  Parallel Seq Scan on hyper
                                        Filter: (("time" >= 'Thu Jan 04 00:00:00 2001'::timestamp without time zone) AND ("time" <= 'Fri Jan 05 01:00:00 2001'::timestamp without time zone))
                                  ->  Parallel Seq Scan on _hyper_1_1_chunk
@@ -144,7 +144,7 @@ ORDER BY MetricMinuteTs DESC, metricid;
                ->  Sort
                      Sort Key: (time_bucket('@ 1 sec'::interval, hyper."time")) DESC, hyper.metricid
                      ->  Result
-                           ->  Append
+                           ->  Parallel Append
                                  ->  Parallel Seq Scan on hyper
                                        Filter: (("time" >= 'Thu Jan 04 00:00:00 2001'::timestamp without time zone) AND ("time" <= 'Fri Jan 05 01:00:00 2001'::timestamp without time zone))
                                  ->  Parallel Seq Scan on _hyper_1_1_chunk
@@ -167,7 +167,7 @@ ORDER BY MetricMinuteTs DESC;
                ->  Partial HashAggregate
                      Group Key: (time_bucket('@ 1 min'::interval, (hyper."time" - '@ 30 secs'::interval)) + '@ 30 secs'::interval)
                      ->  Result
-                           ->  Append
+                           ->  Parallel Append
                                  ->  Parallel Seq Scan on hyper
                                        Filter: (("time" >= 'Thu Jan 04 00:00:00 2001'::timestamp without time zone) AND ("time" <= 'Fri Jan 05 01:00:00 2001'::timestamp without time zone))
                                  ->  Parallel Seq Scan on _hyper_1_1_chunk
@@ -190,7 +190,7 @@ ORDER BY MetricMinuteTs DESC;
                ->  Partial HashAggregate
                      Group Key: time_bucket('60'::bigint, hyper.time_int)
                      ->  Result
-                           ->  Append
+                           ->  Parallel Append
                                  ->  Parallel Seq Scan on hyper
                                        Filter: (("time" >= 'Thu Jan 04 00:00:00 2001'::timestamp without time zone) AND ("time" <= 'Fri Jan 05 01:00:00 2001'::timestamp without time zone))
                                  ->  Parallel Seq Scan on _hyper_1_1_chunk
@@ -213,7 +213,7 @@ ORDER BY MetricMinuteTs DESC;
                ->  Partial HashAggregate
                      Group Key: (time_bucket('60'::bigint, (hyper.time_int - '10'::bigint)) + '10'::bigint)
                      ->  Result
-                           ->  Append
+                           ->  Parallel Append
                                  ->  Parallel Seq Scan on hyper
                                        Filter: (("time" >= 'Thu Jan 04 00:00:00 2001'::timestamp without time zone) AND ("time" <= 'Fri Jan 05 01:00:00 2001'::timestamp without time zone))
                                  ->  Parallel Seq Scan on _hyper_1_1_chunk
@@ -236,7 +236,7 @@ ORDER BY MetricMinuteTs DESC;
                ->  Partial HashAggregate
                      Group Key: time_bucket('@ 1 day'::interval, hyper.time_date)
                      ->  Result
-                           ->  Append
+                           ->  Parallel Append
                                  ->  Parallel Seq Scan on hyper
                                        Filter: (("time" >= 'Thu Jan 04 00:00:00 2001'::timestamp without time zone) AND ("time" <= 'Fri Jan 05 01:00:00 2001'::timestamp without time zone))
                                  ->  Parallel Seq Scan on _hyper_1_1_chunk
@@ -259,7 +259,7 @@ ORDER BY MetricMinuteTs DESC;
                ->  Partial HashAggregate
                      Group Key: date_trunc('minute'::text, hyper."time")
                      ->  Result
-                           ->  Append
+                           ->  Parallel Append
                                  ->  Parallel Seq Scan on hyper
                                        Filter: (("time" >= 'Thu Jan 04 00:00:00 2001'::timestamp without time zone) AND ("time" <= 'Fri Jan 05 01:00:00 2001'::timestamp without time zone))
                                  ->  Parallel Seq Scan on _hyper_1_1_chunk
@@ -284,7 +284,7 @@ ORDER BY MetricMinuteTs DESC;
                ->  Sort
                      Sort Key: (date_trunc('invalid'::text, hyper."time")) DESC
                      ->  Result
-                           ->  Append
+                           ->  Parallel Append
                                  ->  Parallel Seq Scan on hyper
                                        Filter: (("time" >= 'Thu Jan 04 00:00:00 2001'::timestamp without time zone) AND ("time" <= 'Fri Jan 05 01:00:00 2001'::timestamp without time zone))
                                  ->  Parallel Seq Scan on _hyper_1_1_chunk
@@ -308,7 +308,7 @@ ORDER BY MetricMinuteTs DESC;
                ->  Partial HashAggregate
                      Group Key: date_trunc('day'::text, (hyper.time_date)::timestamp with time zone)
                      ->  Result
-                           ->  Append
+                           ->  Parallel Append
                                  ->  Parallel Seq Scan on hyper
                                        Filter: (("time" >= 'Thu Jan 04 00:00:00 2001'::timestamp without time zone) AND ("time" <= 'Fri Jan 05 01:00:00 2001'::timestamp without time zone))
                                  ->  Parallel Seq Scan on _hyper_1_1_chunk
@@ -335,7 +335,7 @@ ORDER BY MetricMinuteTs DESC, metric.id;
                      Group Key: (time_bucket('3600'::bigint, (hyper.time_int - '10'::bigint)) + '10'::bigint), metric.id
                      ->  Hash Join
                            Hash Cond: (hyper.metricid = metric.id)
-                           ->  Append
+                           ->  Parallel Append
                                  ->  Parallel Seq Scan on hyper
                                        Filter: (("time" >= 'Thu Jan 04 00:00:00 2001'::timestamp without time zone) AND ("time" <= 'Fri Jan 05 01:00:00 2001'::timestamp without time zone))
                                  ->  Parallel Seq Scan on _hyper_1_1_chunk
