@@ -1862,6 +1862,9 @@ process_altertable_end_subcmd(Hypertable *ht, Node *parsetree, ObjectAddress *ob
 			/* RLS commands should not recurse to chunks */
 			break;
 		case AT_ReAddConstraint:
+#if PG11
+		case AT_ReAddDomainConstraint:
+#endif
 		case AT_ReAddIndex:
 		case AT_AddOidsRecurse:
 
