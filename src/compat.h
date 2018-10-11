@@ -171,9 +171,10 @@ Date:   Mon Feb 12 19:30:30 2018 -0300
     The modern way is to use a missing_ok argument instead of two separate
     almost-identical routines, so do that.
 */
+#if 0
 #define get_attname(a,b) \
 	get_attname(a,b, false)
-
+#endif
 
 /* ***************************** 
 commit 8b9e9644dc6a9bd4b7a97950e6212f63880cf18b
