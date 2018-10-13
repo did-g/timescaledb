@@ -12,8 +12,7 @@ SELECT * FROM _timescaledb_catalog.dimension;
 INSERT INTO part_legacy VALUES ('2017-03-22T09:18:23', 23.4, 1);
 INSERT INTO part_legacy VALUES ('2017-03-22T09:18:23', 23.4, 76);
 
--- VACUUM part_legacy;
-VACUUM;
+VACUUM part_legacy;
 
 -- Show two chunks and CHECK constraint with cast
 SELECT * FROM test.show_constraintsp('_timescaledb_internal._hyper_1_%_chunk');
@@ -30,8 +29,7 @@ SELECT * FROM _timescaledb_catalog.dimension;
 INSERT INTO part_new VALUES ('2017-03-22T09:18:23', 23.4, 1);
 INSERT INTO part_new VALUES ('2017-03-22T09:18:23', 23.4, 2);
 
--- VACUUM part_new;
-VACUUM;
+VACUUM part_new;
 
 -- Show two chunks and CHECK constraint without cast
 SELECT * FROM test.show_constraintsp('_timescaledb_internal._hyper_2_%_chunk');

@@ -317,15 +317,12 @@ typedef struct VacuumCtx
 static void
 vacuum_chunk(Hypertable *ht, Oid chunk_relid, void *arg)
 {
-// XXX
-#if 0
 	VacuumCtx  *ctx = (VacuumCtx *) arg;
 	Chunk	   *chunk = chunk_get_by_relid(chunk_relid, ht->space->num_dimensions, true);
 
 	ctx->stmt->relation->relname = NameStr(chunk->fd.table_name);
 	ctx->stmt->relation->schemaname = NameStr(chunk->fd.schema_name);
 	ExecVacuum(ctx->stmt, ctx->is_toplevel);
-#endif	
 }
 
 /* Vacuums each chunk of a hypertable */
@@ -341,8 +338,7 @@ process_vacuum(Node *parsetree, ProcessUtilityContext context)
 	Oid			hypertable_oid;
 	Cache	   *hcache;
 	Hypertable *ht;
-	return false;
-#if 0	
+
 	if (stmt->relation == NULL)
 		/* Vacuum is for all tables */
 		return false;
@@ -381,7 +377,6 @@ process_vacuum(Node *parsetree, ProcessUtilityContext context)
 	ExecVacuum(stmt, is_toplevel);
 
 	return true;
-#endif	
 }
 
 static void

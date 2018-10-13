@@ -53,8 +53,7 @@ INSERT INTO approx_count VALUES('2004-01-01 10:00:07', 7);
 INSERT INTO approx_count VALUES('2004-01-01 10:00:08', 8);
 INSERT INTO approx_count VALUES('2004-01-01 10:00:09', 9);
 INSERT INTO approx_count VALUES('2004-01-01 10:00:10', 10);
--- ANALYZE approx_count;
-ANALYZE;
+ANALYZE approx_count;
 
 SELECT * FROM hypertable_approximate_row_count('approx_count');
 
