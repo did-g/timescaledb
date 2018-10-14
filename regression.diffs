@@ -1,5 +1,5 @@
 *** /home/didier/github/timescaledb/test/expected/sql_query_results_unoptimized.out	2018-10-13 23:25:19.297867394 +0200
---- /home/didier/github/timescaledb/d_12/test/results/sql_query_results_unoptimized.out	2018-10-14 21:08:49.822846953 +0200
+--- /home/didier/github/timescaledb/d_12/test/results/sql_query_results_unoptimized.out	2018-10-14 21:57:11.834599768 +0200
 ***************
 *** 95,112 ****
   
@@ -399,7 +399,7 @@
 ======================================================================
 
 *** /home/didier/github/timescaledb/test/expected/sql_query_results_x_diff.out	2018-10-12 22:32:13.366849426 +0200
---- /home/didier/github/timescaledb/d_12/test/results/sql_query_results_x_diff.out	2018-10-14 21:08:50.918861399 +0200
+--- /home/didier/github/timescaledb/d_12/test/results/sql_query_results_x_diff.out	2018-10-14 21:57:12.662665653 +0200
 ***************
 *** 8,16 ****
   <                                         QUERY PLAN                                        
