@@ -64,6 +64,8 @@ chunk_dispatch_exec(CustomScanState *node)
 		TupleDesc	tupdesc = slot->tts_tupleDescriptor;
 		EState	   *estate = node->ss.ps.state;
 		MemoryContext old;
+		ModifyTable *node = (ModifyTable *)state->parent->ps.plan;
+		// OnConflictAction onconflict = node->onConflictAction;
 
 		/* Switch to the executor's per-tuple memory context */
 		old = MemoryContextSwitchTo(GetPerTupleMemoryContext(estate));
@@ -92,8 +94,9 @@ chunk_dispatch_exec(CustomScanState *node)
 		 * head (not replacing it), or otherwise the ModifyTableState node
 		 * won't pick it up.
 		 */
+		 // XXX
 		if (cis->arbiter_indexes != NIL)
-			state->parent->mt_arbiterindexes = cis->arbiter_indexes;
+			node->arbiterIndexes = cis->arbiter_indexes;
 
 		/* slot for the "existing" tuple in ON CONFLICT UPDATE IS chunk schema */
 		if (cis->tup_conv_map != NULL && state->parent->mt_existing != NULL)
@@ -163,9 +166,14 @@ chunk_dispatch_state_set_parent(ChunkDispatchState *state, ModifyTableState *par
 {
 	ModifyTable *mt_plan;
 
+	// XXXX
+	ModifyTable *node = (ModifyTable *)parent->ps.plan;
+	OnConflictAction onconflict = node->onConflictAction;
+
 	state->parent = parent;
-	state->dispatch->arbiter_indexes = parent->mt_arbiterindexes;
-	state->dispatch->on_conflict = parent->mt_onconflict;
+
+	state->dispatch->arbiter_indexes = node->arbiterIndexes;
+	state->dispatch->on_conflict = onconflict;
 	state->dispatch->cmd_type = parent->operation;
 
 	/*
