@@ -234,6 +234,85 @@ chunk_index_select_tablespace(Relation htrel, Relation chunkrel)
 	return tablespace_oid;
 }
 
+static Oid
+index_createCompat(Relation heapRelation,
+                         const char *indexRelationName,
+                         Oid indexRelationId,
+                         Oid relFileNode,
+                         IndexInfo *indexInfo,
+                         List *indexColNames,
+                         Oid accessMethodObjectId,
+                         Oid tableSpaceId,
+                         Oid *collationObjectId,
+                         Oid *classObjectId,
+                         int16 *coloptions,
+                         Datum reloptions,
+                         bool isprimary,
+                         bool isconstraint,
+                         bool deferrable,
+                         bool initdeferred,
+                         bool allow_system_table_mods,
+                         bool skip_build,
+                         bool concurrent,
+                         bool is_internal,
+                         bool if_not_exists)
+{
+	bits16          flags;
+	bits16          constr_flags;
+	flags = constr_flags = 0;
+	if (isconstraint)
+		flags |= INDEX_CREATE_ADD_CONSTRAINT;
+    if (skip_build || concurrent)
+		flags |= INDEX_CREATE_SKIP_BUILD;
+    if (if_not_exists)
+		flags |= INDEX_CREATE_IF_NOT_EXISTS;
+    if (concurrent)
+		flags |= INDEX_CREATE_CONCURRENT;
+    if (isprimary)
+		flags |= INDEX_CREATE_IS_PRIMARY;
+
+    if (deferrable)
+		constr_flags |= INDEX_CONSTR_CREATE_DEFERRABLE;
+    if (initdeferred)
+		constr_flags |= INDEX_CONSTR_CREATE_INIT_DEFERRED;
+
+
+	return index_create(heapRelation, 
+						indexRelationName, 
+						indexRelationId, 
+#if 1
+/* not until 
+commit 8b08f7d4820fd7a8ef6152a9dd8c6e3cb01e5f99 (HEAD)
+Author: Alvaro Herrera <alvherre@alvh.no-ip.org>
+Date:   Fri Jan 19 11:49:22 2018 -0300
+*/
+						 //InvalidOid, /* parentIndexRelid */
+#endif
+#if 1
+/* not until 
+commit eb7ed3f3063401496e4aa4bd68fa33f0be31a72f
+Author: Alvaro Herrera <alvherre@alvh.no-ip.org>
+Date:   Mon Feb 19 16:59:37 2018 -0300
+
+    Allow UNIQUE indexes on partitioned tables
+*/
+						 //InvalidOid, /* parentConstraintId */
+#endif
+						
+		  				 relFileNode, 
+		  				 indexInfo, 
+		  				 indexColNames, 
+		  				 accessMethodObjectId,
+		  				 tableSpaceId, 
+                         collationObjectId,
+                         classObjectId,
+                         coloptions,
+                         reloptions, 
+                         flags, constr_flags, 
+//                         allow_system_table_mods, if_not_exists, NULL); 
+                          allow_system_table_mods, is_internal); 
+}
+
 /*
  * Create a chunk index based on the configuration of the "parent" index.
  */
@@ -288,7 +367,7 @@ chunk_relation_index_create(Relation htrel,
 	else
 		tablespace = chunk_index_select_tablespace(htrel, chunkrel);
 
-	chunk_indexrelid = index_create(chunkrel,
+	chunk_indexrelid = index_createCompat(chunkrel,
 									indexname,
 									InvalidOid,
 									InvalidOid,
