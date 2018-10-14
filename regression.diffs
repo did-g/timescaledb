@@ -1,0 +1,951 @@
+*** /home/didier/github/timescaledb/test/expected/sql_query_results_unoptimized.out	2018-10-13 23:25:19.297867394 +0200
+--- /home/didier/github/timescaledb/d_12/test/results/sql_query_results_unoptimized.out	2018-10-14 21:08:49.822846953 +0200
+***************
+*** 95,112 ****
+  
+  --aggregates use MergeAppend only in optimized
+  EXPLAIN (costs off) SELECT date_trunc('minute', time) t, avg(series_0), min(series_1), avg(series_2) FROM hyper_1 GROUP BY t ORDER BY t DESC limit 2;
+!                                 QUERY PLAN                                 
+! ---------------------------------------------------------------------------
+   Limit
+!    ->  GroupAggregate
+!          Group Key: (date_trunc('minute'::text, hyper_1."time"))
+!          ->  Sort
+!                Sort Key: (date_trunc('minute'::text, hyper_1."time")) DESC
+!                ->  Result
+!                      ->  Append
+!                            ->  Seq Scan on hyper_1
+!                            ->  Seq Scan on _hyper_1_1_chunk
+! (9 rows)
+  
+  EXPLAIN (costs off) SELECT date_trunc('minute', time) t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1_date GROUP BY t ORDER BY t DESC limit 2;
+--- 95,116 ----
+  
+  --aggregates use MergeAppend only in optimized
+  EXPLAIN (costs off) SELECT date_trunc('minute', time) t, avg(series_0), min(series_1), avg(series_2) FROM hyper_1 GROUP BY t ORDER BY t DESC limit 2;
+!                                            QUERY PLAN                                           
+! ------------------------------------------------------------------------------------------------
+   Limit
+!    ->  Finalize GroupAggregate
+!          Group Key: (date_trunc('minute'::text, _hyper_1_1_chunk."time"))
+!          ->  Gather Merge
+!                Workers Planned: 2
+!                ->  Partial GroupAggregate
+!                      Group Key: (date_trunc('minute'::text, _hyper_1_1_chunk."time"))
+!                      ->  Sort
+!                            Sort Key: (date_trunc('minute'::text, _hyper_1_1_chunk."time")) DESC
+!                            ->  Result
+!                                  ->  Parallel Append
+!                                        ->  Parallel Seq Scan on _hyper_1_1_chunk
+!                                        ->  Parallel Seq Scan on hyper_1
+! (13 rows)
+  
+  EXPLAIN (costs off) SELECT date_trunc('minute', time) t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1_date GROUP BY t ORDER BY t DESC limit 2;
+***************
+*** 242,259 ****
+  
+  EXPLAIN (costs off) SELECT time_bucket('1 minute', time) t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1 GROUP BY t ORDER BY t DESC limit 2;
+!                                    QUERY PLAN                                    
+! ---------------------------------------------------------------------------------
+   Limit
+!    ->  GroupAggregate
+!          Group Key: (time_bucket('@ 1 min'::interval, hyper_1."time"))
+!          ->  Sort
+!                Sort Key: (time_bucket('@ 1 min'::interval, hyper_1."time")) DESC
+!                ->  Result
+!                      ->  Append
+!                            ->  Seq Scan on hyper_1
+!                            ->  Seq Scan on _hyper_1_1_chunk
+! (9 rows)
+  
+  SELECT time_bucket('1 minute', time) t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1 GROUP BY t ORDER BY t DESC limit 2;
+--- 246,267 ----
+  
+  EXPLAIN (costs off) SELECT time_bucket('1 minute', time) t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1 GROUP BY t ORDER BY t DESC limit 2;
+!                                               QUERY PLAN                                              
+! ------------------------------------------------------------------------------------------------------
+   Limit
+!    ->  Finalize GroupAggregate
+!          Group Key: (time_bucket('@ 1 min'::interval, _hyper_1_1_chunk."time"))
+!          ->  Gather Merge
+!                Workers Planned: 2
+!                ->  Partial GroupAggregate
+!                      Group Key: (time_bucket('@ 1 min'::interval, _hyper_1_1_chunk."time"))
+!                      ->  Sort
+!                            Sort Key: (time_bucket('@ 1 min'::interval, _hyper_1_1_chunk."time")) DESC
+!                            ->  Result
+!                                  ->  Parallel Append
+!                                        ->  Parallel Seq Scan on _hyper_1_1_chunk
+!                                        ->  Parallel Seq Scan on hyper_1
+! (13 rows)
+  
+  SELECT time_bucket('1 minute', time) t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1 GROUP BY t ORDER BY t DESC limit 2;
+***************
+*** 265,282 ****
+  
+  EXPLAIN (costs off) SELECT time_bucket('1 minute', time, INTERVAL '30 seconds') t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1 GROUP BY t ORDER BY t DESC limit 2;
+!                                                              QUERY PLAN                                                              
+! -------------------------------------------------------------------------------------------------------------------------------------
+   Limit
+!    ->  GroupAggregate
+!          Group Key: ((time_bucket('@ 1 min'::interval, (hyper_1."time" - '@ 30 secs'::interval)) + '@ 30 secs'::interval))
+!          ->  Sort
+!                Sort Key: ((time_bucket('@ 1 min'::interval, (hyper_1."time" - '@ 30 secs'::interval)) + '@ 30 secs'::interval)) DESC
+!                ->  Result
+!                      ->  Append
+!                            ->  Seq Scan on hyper_1
+!                            ->  Seq Scan on _hyper_1_1_chunk
+! (9 rows)
+  
+  SELECT time_bucket('1 minute', time, INTERVAL '30 seconds') t, trunc(avg(series_0)::numeric, 8) as avg_trunc1, min(series_1), trunc(avg(series_2)::numeric, 8) as avg_trunc2
+  FROM hyper_1 GROUP BY t ORDER BY t DESC limit 2;
+--- 273,294 ----
+  
+  EXPLAIN (costs off) SELECT time_bucket('1 minute', time, INTERVAL '30 seconds') t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1 GROUP BY t ORDER BY t DESC limit 2;
+!                                                                         QUERY PLAN                                                                        
+! ----------------------------------------------------------------------------------------------------------------------------------------------------------
+   Limit
+!    ->  Finalize GroupAggregate
+!          Group Key: ((time_bucket('@ 1 min'::interval, (_hyper_1_1_chunk."time" - '@ 30 secs'::interval)) + '@ 30 secs'::interval))
+!          ->  Gather Merge
+!                Workers Planned: 2
+!                ->  Partial GroupAggregate
+!                      Group Key: ((time_bucket('@ 1 min'::interval, (_hyper_1_1_chunk."time" - '@ 30 secs'::interval)) + '@ 30 secs'::interval))
+!                      ->  Sort
+!                            Sort Key: ((time_bucket('@ 1 min'::interval, (_hyper_1_1_chunk."time" - '@ 30 secs'::interval)) + '@ 30 secs'::interval)) DESC
+!                            ->  Result
+!                                  ->  Parallel Append
+!                                        ->  Parallel Seq Scan on _hyper_1_1_chunk
+!                                        ->  Parallel Seq Scan on hyper_1
+! (13 rows)
+  
+  SELECT time_bucket('1 minute', time, INTERVAL '30 seconds') t, trunc(avg(series_0)::numeric, 8) as avg_trunc1, min(series_1), trunc(avg(series_2)::numeric, 8) as avg_trunc2
+  FROM hyper_1 GROUP BY t ORDER BY t DESC limit 2;
+***************
+*** 288,305 ****
+  
+  EXPLAIN (costs off) SELECT time_bucket('1 minute', time - INTERVAL '30 seconds') t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1 GROUP BY t ORDER BY t DESC limit 2;
+!                                                 QUERY PLAN                                                 
+! -----------------------------------------------------------------------------------------------------------
+   Limit
+!    ->  GroupAggregate
+!          Group Key: (time_bucket('@ 1 min'::interval, (hyper_1."time" - '@ 30 secs'::interval)))
+!          ->  Sort
+!                Sort Key: (time_bucket('@ 1 min'::interval, (hyper_1."time" - '@ 30 secs'::interval))) DESC
+!                ->  Result
+!                      ->  Append
+!                            ->  Seq Scan on hyper_1
+!                            ->  Seq Scan on _hyper_1_1_chunk
+! (9 rows)
+  
+  SELECT time_bucket('1 minute', time - INTERVAL '30 seconds') t, trunc(avg(series_0)::numeric, 8) as avg_trunc1, min(series_1), trunc(avg(series_2)::numeric, 8) as avg_trunc2
+  FROM hyper_1 GROUP BY t ORDER BY t DESC limit 2;
+--- 300,321 ----
+  
+  EXPLAIN (costs off) SELECT time_bucket('1 minute', time - INTERVAL '30 seconds') t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1 GROUP BY t ORDER BY t DESC limit 2;
+!                                                            QUERY PLAN                                                           
+! --------------------------------------------------------------------------------------------------------------------------------
+   Limit
+!    ->  Finalize GroupAggregate
+!          Group Key: (time_bucket('@ 1 min'::interval, (_hyper_1_1_chunk."time" - '@ 30 secs'::interval)))
+!          ->  Gather Merge
+!                Workers Planned: 2
+!                ->  Partial GroupAggregate
+!                      Group Key: (time_bucket('@ 1 min'::interval, (_hyper_1_1_chunk."time" - '@ 30 secs'::interval)))
+!                      ->  Sort
+!                            Sort Key: (time_bucket('@ 1 min'::interval, (_hyper_1_1_chunk."time" - '@ 30 secs'::interval))) DESC
+!                            ->  Result
+!                                  ->  Parallel Append
+!                                        ->  Parallel Seq Scan on _hyper_1_1_chunk
+!                                        ->  Parallel Seq Scan on hyper_1
+! (13 rows)
+  
+  SELECT time_bucket('1 minute', time - INTERVAL '30 seconds') t, trunc(avg(series_0)::numeric, 8) as avg_trunc1, min(series_1), trunc(avg(series_2)::numeric, 8) as avg_trunc2
+  FROM hyper_1 GROUP BY t ORDER BY t DESC limit 2;
+***************
+*** 311,328 ****
+  
+  EXPLAIN (costs off) SELECT time_bucket('1 minute', time - INTERVAL '30 seconds') + INTERVAL '30 seconds' t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1 GROUP BY t ORDER BY t DESC limit 2;
+!                                                              QUERY PLAN                                                              
+! -------------------------------------------------------------------------------------------------------------------------------------
+   Limit
+!    ->  GroupAggregate
+!          Group Key: ((time_bucket('@ 1 min'::interval, (hyper_1."time" - '@ 30 secs'::interval)) + '@ 30 secs'::interval))
+!          ->  Sort
+!                Sort Key: ((time_bucket('@ 1 min'::interval, (hyper_1."time" - '@ 30 secs'::interval)) + '@ 30 secs'::interval)) DESC
+!                ->  Result
+!                      ->  Append
+!                            ->  Seq Scan on hyper_1
+!                            ->  Seq Scan on _hyper_1_1_chunk
+! (9 rows)
+  
+  SELECT time_bucket('1 minute', time - INTERVAL '30 seconds') + INTERVAL '30 seconds' t, trunc(avg(series_0)::numeric, 8) as avg_trunc1, min(series_1), trunc(avg(series_2)::numeric, 8) as avg_trunc2
+  FROM hyper_1 GROUP BY t ORDER BY t DESC limit 2;
+--- 327,348 ----
+  
+  EXPLAIN (costs off) SELECT time_bucket('1 minute', time - INTERVAL '30 seconds') + INTERVAL '30 seconds' t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1 GROUP BY t ORDER BY t DESC limit 2;
+!                                                                         QUERY PLAN                                                                        
+! ----------------------------------------------------------------------------------------------------------------------------------------------------------
+   Limit
+!    ->  Finalize GroupAggregate
+!          Group Key: ((time_bucket('@ 1 min'::interval, (_hyper_1_1_chunk."time" - '@ 30 secs'::interval)) + '@ 30 secs'::interval))
+!          ->  Gather Merge
+!                Workers Planned: 2
+!                ->  Partial GroupAggregate
+!                      Group Key: ((time_bucket('@ 1 min'::interval, (_hyper_1_1_chunk."time" - '@ 30 secs'::interval)) + '@ 30 secs'::interval))
+!                      ->  Sort
+!                            Sort Key: ((time_bucket('@ 1 min'::interval, (_hyper_1_1_chunk."time" - '@ 30 secs'::interval)) + '@ 30 secs'::interval)) DESC
+!                            ->  Result
+!                                  ->  Parallel Append
+!                                        ->  Parallel Seq Scan on _hyper_1_1_chunk
+!                                        ->  Parallel Seq Scan on hyper_1
+! (13 rows)
+  
+  SELECT time_bucket('1 minute', time - INTERVAL '30 seconds') + INTERVAL '30 seconds' t, trunc(avg(series_0)::numeric, 8) as avg_trunc1, min(series_1), trunc(avg(series_2)::numeric, 8) as avg_trunc2
+  FROM hyper_1 GROUP BY t ORDER BY t DESC limit 2;
+***************
+*** 334,351 ****
+  
+  EXPLAIN (costs off) SELECT time_bucket('1 minute', time) t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1_tz GROUP BY t ORDER BY t DESC limit 2;
+!                                      QUERY PLAN                                     
+! ------------------------------------------------------------------------------------
+   Limit
+!    ->  GroupAggregate
+!          Group Key: (time_bucket('@ 1 min'::interval, hyper_1_tz."time"))
+!          ->  Sort
+!                Sort Key: (time_bucket('@ 1 min'::interval, hyper_1_tz."time")) DESC
+!                ->  Result
+!                      ->  Append
+!                            ->  Seq Scan on hyper_1_tz
+!                            ->  Seq Scan on _hyper_2_2_chunk
+! (9 rows)
+  
+  SELECT time_bucket('1 minute', time) t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1_tz GROUP BY t ORDER BY t DESC limit 2;
+--- 354,375 ----
+  
+  EXPLAIN (costs off) SELECT time_bucket('1 minute', time) t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1_tz GROUP BY t ORDER BY t DESC limit 2;
+!                                               QUERY PLAN                                              
+! ------------------------------------------------------------------------------------------------------
+   Limit
+!    ->  Finalize GroupAggregate
+!          Group Key: (time_bucket('@ 1 min'::interval, _hyper_2_2_chunk."time"))
+!          ->  Gather Merge
+!                Workers Planned: 2
+!                ->  Partial GroupAggregate
+!                      Group Key: (time_bucket('@ 1 min'::interval, _hyper_2_2_chunk."time"))
+!                      ->  Sort
+!                            Sort Key: (time_bucket('@ 1 min'::interval, _hyper_2_2_chunk."time")) DESC
+!                            ->  Result
+!                                  ->  Parallel Append
+!                                        ->  Parallel Seq Scan on _hyper_2_2_chunk
+!                                        ->  Parallel Seq Scan on hyper_1_tz
+! (13 rows)
+  
+  SELECT time_bucket('1 minute', time) t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1_tz GROUP BY t ORDER BY t DESC limit 2;
+***************
+*** 357,374 ****
+  
+  EXPLAIN (costs off) SELECT time_bucket('1 minute', time::timestamp) t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1_tz GROUP BY t ORDER BY t DESC limit 2;
+!                                                     QUERY PLAN                                                     
+! -------------------------------------------------------------------------------------------------------------------
+   Limit
+!    ->  GroupAggregate
+!          Group Key: (time_bucket('@ 1 min'::interval, (hyper_1_tz."time")::timestamp without time zone))
+!          ->  Sort
+!                Sort Key: (time_bucket('@ 1 min'::interval, (hyper_1_tz."time")::timestamp without time zone)) DESC
+!                ->  Result
+!                      ->  Append
+!                            ->  Seq Scan on hyper_1_tz
+!                            ->  Seq Scan on _hyper_2_2_chunk
+! (9 rows)
+  
+  SELECT time_bucket('1 minute', time::timestamp) t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1_tz GROUP BY t ORDER BY t DESC limit 2;
+--- 381,402 ----
+  
+  EXPLAIN (costs off) SELECT time_bucket('1 minute', time::timestamp) t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1_tz GROUP BY t ORDER BY t DESC limit 2;
+!                                                              QUERY PLAN                                                              
+! -------------------------------------------------------------------------------------------------------------------------------------
+   Limit
+!    ->  Finalize GroupAggregate
+!          Group Key: (time_bucket('@ 1 min'::interval, (_hyper_2_2_chunk."time")::timestamp without time zone))
+!          ->  Gather Merge
+!                Workers Planned: 2
+!                ->  Partial GroupAggregate
+!                      Group Key: (time_bucket('@ 1 min'::interval, (_hyper_2_2_chunk."time")::timestamp without time zone))
+!                      ->  Sort
+!                            Sort Key: (time_bucket('@ 1 min'::interval, (_hyper_2_2_chunk."time")::timestamp without time zone)) DESC
+!                            ->  Result
+!                                  ->  Parallel Append
+!                                        ->  Parallel Seq Scan on _hyper_2_2_chunk
+!                                        ->  Parallel Seq Scan on hyper_1_tz
+! (13 rows)
+  
+  SELECT time_bucket('1 minute', time::timestamp) t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1_tz GROUP BY t ORDER BY t DESC limit 2;
+***************
+*** 380,399 ****
+  
+  EXPLAIN (costs off) SELECT time_bucket(10, time) t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1_int GROUP BY t ORDER BY t DESC limit 2;
+!                              QUERY PLAN                             
+! --------------------------------------------------------------------
+   Limit
+!    ->  GroupAggregate
+!          Group Key: (time_bucket(10, hyper_1_int."time"))
+!          ->  Sort
+!                Sort Key: (time_bucket(10, hyper_1_int."time")) DESC
+!                ->  Result
+!                      ->  Append
+!                            ->  Seq Scan on hyper_1_int
+!                            ->  Seq Scan on _hyper_3_3_chunk
+!                            ->  Seq Scan on _hyper_3_4_chunk
+!                            ->  Seq Scan on _hyper_3_5_chunk
+! (11 rows)
+  
+  SELECT time_bucket(10, time) t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1_int GROUP BY t ORDER BY t DESC limit 2;
+--- 408,431 ----
+  
+  EXPLAIN (costs off) SELECT time_bucket(10, time) t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1_int GROUP BY t ORDER BY t DESC limit 2;
+!                                      QUERY PLAN                                      
+! -------------------------------------------------------------------------------------
+   Limit
+!    ->  Finalize GroupAggregate
+!          Group Key: (time_bucket(10, _hyper_3_3_chunk."time"))
+!          ->  Gather Merge
+!                Workers Planned: 2
+!                ->  Partial GroupAggregate
+!                      Group Key: (time_bucket(10, _hyper_3_3_chunk."time"))
+!                      ->  Sort
+!                            Sort Key: (time_bucket(10, _hyper_3_3_chunk."time")) DESC
+!                            ->  Result
+!                                  ->  Parallel Append
+!                                        ->  Parallel Seq Scan on _hyper_3_3_chunk
+!                                        ->  Parallel Seq Scan on _hyper_3_4_chunk
+!                                        ->  Parallel Seq Scan on _hyper_3_5_chunk
+!                                        ->  Parallel Seq Scan on hyper_1_int
+! (15 rows)
+  
+  SELECT time_bucket(10, time) t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1_int GROUP BY t ORDER BY t DESC limit 2;
+***************
+*** 405,424 ****
+  
+  EXPLAIN (costs off) SELECT time_bucket(10, time, 2) t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1_int GROUP BY t ORDER BY t DESC limit 2;
+!                                    QUERY PLAN                                   
+! --------------------------------------------------------------------------------
+   Limit
+!    ->  GroupAggregate
+!          Group Key: ((time_bucket(10, (hyper_1_int."time" - 2)) + 2))
+!          ->  Sort
+!                Sort Key: ((time_bucket(10, (hyper_1_int."time" - 2)) + 2)) DESC
+!                ->  Result
+!                      ->  Append
+!                            ->  Seq Scan on hyper_1_int
+!                            ->  Seq Scan on _hyper_3_3_chunk
+!                            ->  Seq Scan on _hyper_3_4_chunk
+!                            ->  Seq Scan on _hyper_3_5_chunk
+! (11 rows)
+  
+  SELECT time_bucket(10, time) t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1_int GROUP BY t ORDER BY t DESC limit 2;
+--- 437,460 ----
+  
+  EXPLAIN (costs off) SELECT time_bucket(10, time, 2) t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1_int GROUP BY t ORDER BY t DESC limit 2;
+!                                            QUERY PLAN                                            
+! -------------------------------------------------------------------------------------------------
+   Limit
+!    ->  Finalize GroupAggregate
+!          Group Key: ((time_bucket(10, (_hyper_3_3_chunk."time" - 2)) + 2))
+!          ->  Gather Merge
+!                Workers Planned: 2
+!                ->  Partial GroupAggregate
+!                      Group Key: ((time_bucket(10, (_hyper_3_3_chunk."time" - 2)) + 2))
+!                      ->  Sort
+!                            Sort Key: ((time_bucket(10, (_hyper_3_3_chunk."time" - 2)) + 2)) DESC
+!                            ->  Result
+!                                  ->  Parallel Append
+!                                        ->  Parallel Seq Scan on _hyper_3_3_chunk
+!                                        ->  Parallel Seq Scan on _hyper_3_4_chunk
+!                                        ->  Parallel Seq Scan on _hyper_3_5_chunk
+!                                        ->  Parallel Seq Scan on hyper_1_int
+! (15 rows)
+  
+  SELECT time_bucket(10, time) t, avg(series_0), min(series_1), avg(series_2)
+  FROM hyper_1_int GROUP BY t ORDER BY t DESC limit 2;
+
+======================================================================
+
+*** /home/didier/github/timescaledb/test/expected/sql_query_results_x_diff.out	2018-10-12 22:32:13.366849426 +0200
+--- /home/didier/github/timescaledb/d_12/test/results/sql_query_results_x_diff.out	2018-10-14 21:08:50.918861399 +0200
+***************
+*** 8,16 ****
+  <                                         QUERY PLAN                                        
+  < ------------------------------------------------------------------------------------------
+  ---
+! >                                 QUERY PLAN                                 
+! > ---------------------------------------------------------------------------
+! 103,108c103,109
+  <          ->  Result
+  <                ->  Merge Append
+  <                      Sort Key: (date_trunc('minute'::text, hyper_1."time")) DESC
+--- 8,18 ----
+  <                                         QUERY PLAN                                        
+  < ------------------------------------------------------------------------------------------
+  ---
+! >                                            QUERY PLAN                                           
+! > ------------------------------------------------------------------------------------------------
+! 101,108c101,113
+! <    ->  GroupAggregate
+! <          Group Key: (date_trunc('minute'::text, hyper_1."time"))
+  <          ->  Result
+  <                ->  Merge Append
+  <                      Sort Key: (date_trunc('minute'::text, hyper_1."time")) DESC
+***************
+*** 18,37 ****
+  <                      ->  Index Scan using _hyper_1_1_chunk_time_plain on _hyper_1_1_chunk
+  < (8 rows)
+  ---
+! >          ->  Sort
+! >                Sort Key: (date_trunc('minute'::text, hyper_1."time")) DESC
+! >                ->  Result
+! >                      ->  Append
+! >                            ->  Seq Scan on hyper_1
+! >                            ->  Seq Scan on _hyper_1_1_chunk
+! > (9 rows)
+! 112,113c113,114
+  <                                                     QUERY PLAN                                                    
+  < ------------------------------------------------------------------------------------------------------------------
+  ---
+  >                                               QUERY PLAN                                              
+  > ------------------------------------------------------------------------------------------------------
+! 115,134c116,136
+  <    ->  GroupAggregate
+  <          Group Key: (date_trunc('minute'::text, (hyper_1_date."time")::timestamp with time zone))
+  <          ->  Result
+--- 20,45 ----
+  <                      ->  Index Scan using _hyper_1_1_chunk_time_plain on _hyper_1_1_chunk
+  < (8 rows)
+  ---
+! >    ->  Finalize GroupAggregate
+! >          Group Key: (date_trunc('minute'::text, _hyper_1_1_chunk."time"))
+! >          ->  Gather Merge
+! >                Workers Planned: 2
+! >                ->  Partial GroupAggregate
+! >                      Group Key: (date_trunc('minute'::text, _hyper_1_1_chunk."time"))
+! >                      ->  Sort
+! >                            Sort Key: (date_trunc('minute'::text, _hyper_1_1_chunk."time")) DESC
+! >                            ->  Result
+! >                                  ->  Parallel Append
+! >                                        ->  Parallel Seq Scan on _hyper_1_1_chunk
+! >                                        ->  Parallel Seq Scan on hyper_1
+! > (13 rows)
+! 112,113c117,118
+  <                                                     QUERY PLAN                                                    
+  < ------------------------------------------------------------------------------------------------------------------
+  ---
+  >                                               QUERY PLAN                                              
+  > ------------------------------------------------------------------------------------------------------
+! 115,134c120,140
+  <    ->  GroupAggregate
+  <          Group Key: (date_trunc('minute'::text, (hyper_1_date."time")::timestamp with time zone))
+  <          ->  Result
+***************
+*** 74,86 ****
+  >                            ->  Seq Scan on _hyper_4_17_chunk
+  >                            ->  Seq Scan on _hyper_4_18_chunk
+  > (21 rows)
+! 159,160c161,162
+  <                                                 QUERY PLAN                                                 
+  < -----------------------------------------------------------------------------------------------------------
+  ---
+  >                                                       QUERY PLAN                                                       
+  > -----------------------------------------------------------------------------------------------------------------------
+! 162,171c164,176
+  <    ->  GroupAggregate
+  <          Group Key: (date_trunc('minute'::text, hyper_1."time"))
+  <          ->  Custom Scan (ConstraintAwareAppend)
+--- 82,94 ----
+  >                            ->  Seq Scan on _hyper_4_17_chunk
+  >                            ->  Seq Scan on _hyper_4_18_chunk
+  > (21 rows)
+! 159,160c165,166
+  <                                                 QUERY PLAN                                                 
+  < -----------------------------------------------------------------------------------------------------------
+  ---
+  >                                                       QUERY PLAN                                                       
+  > -----------------------------------------------------------------------------------------------------------------------
+! 162,171c168,180
+  <    ->  GroupAggregate
+  <          Group Key: (date_trunc('minute'::text, hyper_1."time"))
+  <          ->  Custom Scan (ConstraintAwareAppend)
+***************
+*** 105,117 ****
+  >                                  ->  Bitmap Index Scan on _hyper_1_1_chunk_time_plain
+  >                                        Index Cond: ("time" < 'Wed Dec 31 16:15:00 1969 PST'::timestamp with time zone)
+  > (13 rows)
+! 240,241c245,246
+  <                                         QUERY PLAN                                        
+  < ------------------------------------------------------------------------------------------
+  ---
+! >                                    QUERY PLAN                                    
+! > ---------------------------------------------------------------------------------
+! 245,250c250,256
+  <          ->  Result
+  <                ->  Merge Append
+  <                      Sort Key: (time_bucket('@ 1 min'::interval, hyper_1."time")) DESC
+--- 113,127 ----
+  >                                  ->  Bitmap Index Scan on _hyper_1_1_chunk_time_plain
+  >                                        Index Cond: ("time" < 'Wed Dec 31 16:15:00 1969 PST'::timestamp with time zone)
+  > (13 rows)
+! 240,241c249,250
+  <                                         QUERY PLAN                                        
+  < ------------------------------------------------------------------------------------------
+  ---
+! >                                               QUERY PLAN                                              
+! > ------------------------------------------------------------------------------------------------------
+! 243,250c252,264
+! <    ->  GroupAggregate
+! <          Group Key: (time_bucket('@ 1 min'::interval, hyper_1."time"))
+  <          ->  Result
+  <                ->  Merge Append
+  <                      Sort Key: (time_bucket('@ 1 min'::interval, hyper_1."time")) DESC
+***************
+*** 119,138 ****
+  <                      ->  Index Scan using _hyper_1_1_chunk_time_plain on _hyper_1_1_chunk
+  < (8 rows)
+  ---
+! >          ->  Sort
+! >                Sort Key: (time_bucket('@ 1 min'::interval, hyper_1."time")) DESC
+! >                ->  Result
+! >                      ->  Append
+! >                            ->  Seq Scan on hyper_1
+! >                            ->  Seq Scan on _hyper_1_1_chunk
+! > (9 rows)
+! 262,263c268,269
+  <                                                                 QUERY PLAN                                                                 
+  < -------------------------------------------------------------------------------------------------------------------------------------------
+  ---
+! >                                                              QUERY PLAN                                                              
+! > -------------------------------------------------------------------------------------------------------------------------------------
+! 267,272c273,279
+  <          ->  Result
+  <                ->  Merge Append
+  <                      Sort Key: ((time_bucket('@ 1 min'::interval, (hyper_1."time" - '@ 30 secs'::interval)) + '@ 30 secs'::interval)) DESC
+--- 129,156 ----
+  <                      ->  Index Scan using _hyper_1_1_chunk_time_plain on _hyper_1_1_chunk
+  < (8 rows)
+  ---
+! >    ->  Finalize GroupAggregate
+! >          Group Key: (time_bucket('@ 1 min'::interval, _hyper_1_1_chunk."time"))
+! >          ->  Gather Merge
+! >                Workers Planned: 2
+! >                ->  Partial GroupAggregate
+! >                      Group Key: (time_bucket('@ 1 min'::interval, _hyper_1_1_chunk."time"))
+! >                      ->  Sort
+! >                            Sort Key: (time_bucket('@ 1 min'::interval, _hyper_1_1_chunk."time")) DESC
+! >                            ->  Result
+! >                                  ->  Parallel Append
+! >                                        ->  Parallel Seq Scan on _hyper_1_1_chunk
+! >                                        ->  Parallel Seq Scan on hyper_1
+! > (13 rows)
+! 262,263c276,277
+  <                                                                 QUERY PLAN                                                                 
+  < -------------------------------------------------------------------------------------------------------------------------------------------
+  ---
+! >                                                                         QUERY PLAN                                                                        
+! > ----------------------------------------------------------------------------------------------------------------------------------------------------------
+! 265,272c279,291
+! <    ->  GroupAggregate
+! <          Group Key: ((time_bucket('@ 1 min'::interval, (hyper_1."time" - '@ 30 secs'::interval)) + '@ 30 secs'::interval))
+  <          ->  Result
+  <                ->  Merge Append
+  <                      Sort Key: ((time_bucket('@ 1 min'::interval, (hyper_1."time" - '@ 30 secs'::interval)) + '@ 30 secs'::interval)) DESC
+***************
+*** 140,159 ****
+  <                      ->  Index Scan using _hyper_1_1_chunk_time_plain on _hyper_1_1_chunk
+  < (8 rows)
+  ---
+! >          ->  Sort
+! >                Sort Key: ((time_bucket('@ 1 min'::interval, (hyper_1."time" - '@ 30 secs'::interval)) + '@ 30 secs'::interval)) DESC
+! >                ->  Result
+! >                      ->  Append
+! >                            ->  Seq Scan on hyper_1
+! >                            ->  Seq Scan on _hyper_1_1_chunk
+! > (9 rows)
+! 284,285c291,292
+  <                                                    QUERY PLAN                                                    
+  < -----------------------------------------------------------------------------------------------------------------
+  ---
+! >                                                 QUERY PLAN                                                 
+! > -----------------------------------------------------------------------------------------------------------
+! 289,294c296,302
+  <          ->  Result
+  <                ->  Merge Append
+  <                      Sort Key: (time_bucket('@ 1 min'::interval, (hyper_1."time" - '@ 30 secs'::interval))) DESC
+--- 158,185 ----
+  <                      ->  Index Scan using _hyper_1_1_chunk_time_plain on _hyper_1_1_chunk
+  < (8 rows)
+  ---
+! >    ->  Finalize GroupAggregate
+! >          Group Key: ((time_bucket('@ 1 min'::interval, (_hyper_1_1_chunk."time" - '@ 30 secs'::interval)) + '@ 30 secs'::interval))
+! >          ->  Gather Merge
+! >                Workers Planned: 2
+! >                ->  Partial GroupAggregate
+! >                      Group Key: ((time_bucket('@ 1 min'::interval, (_hyper_1_1_chunk."time" - '@ 30 secs'::interval)) + '@ 30 secs'::interval))
+! >                      ->  Sort
+! >                            Sort Key: ((time_bucket('@ 1 min'::interval, (_hyper_1_1_chunk."time" - '@ 30 secs'::interval)) + '@ 30 secs'::interval)) DESC
+! >                            ->  Result
+! >                                  ->  Parallel Append
+! >                                        ->  Parallel Seq Scan on _hyper_1_1_chunk
+! >                                        ->  Parallel Seq Scan on hyper_1
+! > (13 rows)
+! 284,285c303,304
+  <                                                    QUERY PLAN                                                    
+  < -----------------------------------------------------------------------------------------------------------------
+  ---
+! >                                                            QUERY PLAN                                                           
+! > --------------------------------------------------------------------------------------------------------------------------------
+! 287,294c306,318
+! <    ->  GroupAggregate
+! <          Group Key: (time_bucket('@ 1 min'::interval, (hyper_1."time" - '@ 30 secs'::interval)))
+  <          ->  Result
+  <                ->  Merge Append
+  <                      Sort Key: (time_bucket('@ 1 min'::interval, (hyper_1."time" - '@ 30 secs'::interval))) DESC
+***************
+*** 161,180 ****
+  <                      ->  Index Scan using _hyper_1_1_chunk_time_plain on _hyper_1_1_chunk
+  < (8 rows)
+  ---
+! >          ->  Sort
+! >                Sort Key: (time_bucket('@ 1 min'::interval, (hyper_1."time" - '@ 30 secs'::interval))) DESC
+! >                ->  Result
+! >                      ->  Append
+! >                            ->  Seq Scan on hyper_1
+! >                            ->  Seq Scan on _hyper_1_1_chunk
+! > (9 rows)
+! 306,307c314,315
+  <                                                                 QUERY PLAN                                                                 
+  < -------------------------------------------------------------------------------------------------------------------------------------------
+  ---
+! >                                                              QUERY PLAN                                                              
+! > -------------------------------------------------------------------------------------------------------------------------------------
+! 311,316c319,325
+  <          ->  Result
+  <                ->  Merge Append
+  <                      Sort Key: ((time_bucket('@ 1 min'::interval, (hyper_1."time" - '@ 30 secs'::interval)) + '@ 30 secs'::interval)) DESC
+--- 187,214 ----
+  <                      ->  Index Scan using _hyper_1_1_chunk_time_plain on _hyper_1_1_chunk
+  < (8 rows)
+  ---
+! >    ->  Finalize GroupAggregate
+! >          Group Key: (time_bucket('@ 1 min'::interval, (_hyper_1_1_chunk."time" - '@ 30 secs'::interval)))
+! >          ->  Gather Merge
+! >                Workers Planned: 2
+! >                ->  Partial GroupAggregate
+! >                      Group Key: (time_bucket('@ 1 min'::interval, (_hyper_1_1_chunk."time" - '@ 30 secs'::interval)))
+! >                      ->  Sort
+! >                            Sort Key: (time_bucket('@ 1 min'::interval, (_hyper_1_1_chunk."time" - '@ 30 secs'::interval))) DESC
+! >                            ->  Result
+! >                                  ->  Parallel Append
+! >                                        ->  Parallel Seq Scan on _hyper_1_1_chunk
+! >                                        ->  Parallel Seq Scan on hyper_1
+! > (13 rows)
+! 306,307c330,331
+  <                                                                 QUERY PLAN                                                                 
+  < -------------------------------------------------------------------------------------------------------------------------------------------
+  ---
+! >                                                                         QUERY PLAN                                                                        
+! > ----------------------------------------------------------------------------------------------------------------------------------------------------------
+! 309,316c333,345
+! <    ->  GroupAggregate
+! <          Group Key: ((time_bucket('@ 1 min'::interval, (hyper_1."time" - '@ 30 secs'::interval)) + '@ 30 secs'::interval))
+  <          ->  Result
+  <                ->  Merge Append
+  <                      Sort Key: ((time_bucket('@ 1 min'::interval, (hyper_1."time" - '@ 30 secs'::interval)) + '@ 30 secs'::interval)) DESC
+***************
+*** 182,201 ****
+  <                      ->  Index Scan using _hyper_1_1_chunk_time_plain on _hyper_1_1_chunk
+  < (8 rows)
+  ---
+! >          ->  Sort
+! >                Sort Key: ((time_bucket('@ 1 min'::interval, (hyper_1."time" - '@ 30 secs'::interval)) + '@ 30 secs'::interval)) DESC
+! >                ->  Result
+! >                      ->  Append
+! >                            ->  Seq Scan on hyper_1
+! >                            ->  Seq Scan on _hyper_1_1_chunk
+! > (9 rows)
+! 328,329c337,338
+  <                                          QUERY PLAN                                          
+  < ---------------------------------------------------------------------------------------------
+  ---
+! >                                      QUERY PLAN                                     
+! > ------------------------------------------------------------------------------------
+! 333,338c342,348
+  <          ->  Result
+  <                ->  Merge Append
+  <                      Sort Key: (time_bucket('@ 1 min'::interval, hyper_1_tz."time")) DESC
+--- 216,243 ----
+  <                      ->  Index Scan using _hyper_1_1_chunk_time_plain on _hyper_1_1_chunk
+  < (8 rows)
+  ---
+! >    ->  Finalize GroupAggregate
+! >          Group Key: ((time_bucket('@ 1 min'::interval, (_hyper_1_1_chunk."time" - '@ 30 secs'::interval)) + '@ 30 secs'::interval))
+! >          ->  Gather Merge
+! >                Workers Planned: 2
+! >                ->  Partial GroupAggregate
+! >                      Group Key: ((time_bucket('@ 1 min'::interval, (_hyper_1_1_chunk."time" - '@ 30 secs'::interval)) + '@ 30 secs'::interval))
+! >                      ->  Sort
+! >                            Sort Key: ((time_bucket('@ 1 min'::interval, (_hyper_1_1_chunk."time" - '@ 30 secs'::interval)) + '@ 30 secs'::interval)) DESC
+! >                            ->  Result
+! >                                  ->  Parallel Append
+! >                                        ->  Parallel Seq Scan on _hyper_1_1_chunk
+! >                                        ->  Parallel Seq Scan on hyper_1
+! > (13 rows)
+! 328,329c357,358
+  <                                          QUERY PLAN                                          
+  < ---------------------------------------------------------------------------------------------
+  ---
+! >                                               QUERY PLAN                                              
+! > ------------------------------------------------------------------------------------------------------
+! 331,338c360,372
+! <    ->  GroupAggregate
+! <          Group Key: (time_bucket('@ 1 min'::interval, hyper_1_tz."time"))
+  <          ->  Result
+  <                ->  Merge Append
+  <                      Sort Key: (time_bucket('@ 1 min'::interval, hyper_1_tz."time")) DESC
+***************
+*** 203,222 ****
+  <                      ->  Index Scan using _hyper_2_2_chunk_time_plain_tz on _hyper_2_2_chunk
+  < (8 rows)
+  ---
+! >          ->  Sort
+! >                Sort Key: (time_bucket('@ 1 min'::interval, hyper_1_tz."time")) DESC
+! >                ->  Result
+! >                      ->  Append
+! >                            ->  Seq Scan on hyper_1_tz
+! >                            ->  Seq Scan on _hyper_2_2_chunk
+! > (9 rows)
+! 350,351c360,361
+  <                                                        QUERY PLAN                                                        
+  < -------------------------------------------------------------------------------------------------------------------------
+  ---
+! >                                                     QUERY PLAN                                                     
+! > -------------------------------------------------------------------------------------------------------------------
+! 355,360c365,371
+  <          ->  Result
+  <                ->  Merge Append
+  <                      Sort Key: (time_bucket('@ 1 min'::interval, (hyper_1_tz."time")::timestamp without time zone)) DESC
+--- 245,272 ----
+  <                      ->  Index Scan using _hyper_2_2_chunk_time_plain_tz on _hyper_2_2_chunk
+  < (8 rows)
+  ---
+! >    ->  Finalize GroupAggregate
+! >          Group Key: (time_bucket('@ 1 min'::interval, _hyper_2_2_chunk."time"))
+! >          ->  Gather Merge
+! >                Workers Planned: 2
+! >                ->  Partial GroupAggregate
+! >                      Group Key: (time_bucket('@ 1 min'::interval, _hyper_2_2_chunk."time"))
+! >                      ->  Sort
+! >                            Sort Key: (time_bucket('@ 1 min'::interval, _hyper_2_2_chunk."time")) DESC
+! >                            ->  Result
+! >                                  ->  Parallel Append
+! >                                        ->  Parallel Seq Scan on _hyper_2_2_chunk
+! >                                        ->  Parallel Seq Scan on hyper_1_tz
+! > (13 rows)
+! 350,351c384,385
+  <                                                        QUERY PLAN                                                        
+  < -------------------------------------------------------------------------------------------------------------------------
+  ---
+! >                                                              QUERY PLAN                                                              
+! > -------------------------------------------------------------------------------------------------------------------------------------
+! 353,360c387,399
+! <    ->  GroupAggregate
+! <          Group Key: (time_bucket('@ 1 min'::interval, (hyper_1_tz."time")::timestamp without time zone))
+  <          ->  Result
+  <                ->  Merge Append
+  <                      Sort Key: (time_bucket('@ 1 min'::interval, (hyper_1_tz."time")::timestamp without time zone)) DESC
+***************
+*** 224,243 ****
+  <                      ->  Index Scan using _hyper_2_2_chunk_time_plain_tz on _hyper_2_2_chunk
+  < (8 rows)
+  ---
+! >          ->  Sort
+! >                Sort Key: (time_bucket('@ 1 min'::interval, (hyper_1_tz."time")::timestamp without time zone)) DESC
+! >                ->  Result
+! >                      ->  Append
+! >                            ->  Seq Scan on hyper_1_tz
+! >                            ->  Seq Scan on _hyper_2_2_chunk
+! > (9 rows)
+! 372,373c383,384
+  <                                           QUERY PLAN                                          
+  < ----------------------------------------------------------------------------------------------
+  ---
+! >                              QUERY PLAN                             
+! > --------------------------------------------------------------------
+! 377,384c388,396
+  <          ->  Result
+  <                ->  Merge Append
+  <                      Sort Key: (time_bucket(10, hyper_1_int."time")) DESC
+--- 274,301 ----
+  <                      ->  Index Scan using _hyper_2_2_chunk_time_plain_tz on _hyper_2_2_chunk
+  < (8 rows)
+  ---
+! >    ->  Finalize GroupAggregate
+! >          Group Key: (time_bucket('@ 1 min'::interval, (_hyper_2_2_chunk."time")::timestamp without time zone))
+! >          ->  Gather Merge
+! >                Workers Planned: 2
+! >                ->  Partial GroupAggregate
+! >                      Group Key: (time_bucket('@ 1 min'::interval, (_hyper_2_2_chunk."time")::timestamp without time zone))
+! >                      ->  Sort
+! >                            Sort Key: (time_bucket('@ 1 min'::interval, (_hyper_2_2_chunk."time")::timestamp without time zone)) DESC
+! >                            ->  Result
+! >                                  ->  Parallel Append
+! >                                        ->  Parallel Seq Scan on _hyper_2_2_chunk
+! >                                        ->  Parallel Seq Scan on hyper_1_tz
+! > (13 rows)
+! 372,373c411,412
+  <                                           QUERY PLAN                                          
+  < ----------------------------------------------------------------------------------------------
+  ---
+! >                                      QUERY PLAN                                      
+! > -------------------------------------------------------------------------------------
+! 375,384c414,428
+! <    ->  GroupAggregate
+! <          Group Key: (time_bucket(10, hyper_1_int."time"))
+  <          ->  Result
+  <                ->  Merge Append
+  <                      Sort Key: (time_bucket(10, hyper_1_int."time")) DESC
+***************
+*** 247,268 ****
+  <                      ->  Index Scan using _hyper_3_5_chunk_time_plain_int on _hyper_3_5_chunk
+  < (10 rows)
+  ---
+! >          ->  Sort
+! >                Sort Key: (time_bucket(10, hyper_1_int."time")) DESC
+! >                ->  Result
+! >                      ->  Append
+! >                            ->  Seq Scan on hyper_1_int
+! >                            ->  Seq Scan on _hyper_3_3_chunk
+! >                            ->  Seq Scan on _hyper_3_4_chunk
+! >                            ->  Seq Scan on _hyper_3_5_chunk
+! > (11 rows)
+! 396,397c408,409
+  <                                           QUERY PLAN                                          
+  < ----------------------------------------------------------------------------------------------
+  ---
+! >                                    QUERY PLAN                                   
+! > --------------------------------------------------------------------------------
+! 401,408c413,421
+  <          ->  Result
+  <                ->  Merge Append
+  <                      Sort Key: ((time_bucket(10, (hyper_1_int."time" - 2)) + 2)) DESC
+--- 305,334 ----
+  <                      ->  Index Scan using _hyper_3_5_chunk_time_plain_int on _hyper_3_5_chunk
+  < (10 rows)
+  ---
+! >    ->  Finalize GroupAggregate
+! >          Group Key: (time_bucket(10, _hyper_3_3_chunk."time"))
+! >          ->  Gather Merge
+! >                Workers Planned: 2
+! >                ->  Partial GroupAggregate
+! >                      Group Key: (time_bucket(10, _hyper_3_3_chunk."time"))
+! >                      ->  Sort
+! >                            Sort Key: (time_bucket(10, _hyper_3_3_chunk."time")) DESC
+! >                            ->  Result
+! >                                  ->  Parallel Append
+! >                                        ->  Parallel Seq Scan on _hyper_3_3_chunk
+! >                                        ->  Parallel Seq Scan on _hyper_3_4_chunk
+! >                                        ->  Parallel Seq Scan on _hyper_3_5_chunk
+! >                                        ->  Parallel Seq Scan on hyper_1_int
+! > (15 rows)
+! 396,397c440,441
+  <                                           QUERY PLAN                                          
+  < ----------------------------------------------------------------------------------------------
+  ---
+! >                                            QUERY PLAN                                            
+! > -------------------------------------------------------------------------------------------------
+! 399,408c443,457
+! <    ->  GroupAggregate
+! <          Group Key: ((time_bucket(10, (hyper_1_int."time" - 2)) + 2))
+  <          ->  Result
+  <                ->  Merge Append
+  <                      Sort Key: ((time_bucket(10, (hyper_1_int."time" - 2)) + 2)) DESC
+***************
+*** 272,293 ****
+  <                      ->  Index Scan using _hyper_3_5_chunk_time_plain_int on _hyper_3_5_chunk
+  < (10 rows)
+  ---
+! >          ->  Sort
+! >                Sort Key: ((time_bucket(10, (hyper_1_int."time" - 2)) + 2)) DESC
+! >                ->  Result
+! >                      ->  Append
+! >                            ->  Seq Scan on hyper_1_int
+! >                            ->  Seq Scan on _hyper_3_3_chunk
+! >                            ->  Seq Scan on _hyper_3_4_chunk
+! >                            ->  Seq Scan on _hyper_3_5_chunk
+! > (11 rows)
+! 461,462c474,475
+  <                                           QUERY PLAN                                           
+  < -----------------------------------------------------------------------------------------------
+  ---
+  >                                                 QUERY PLAN                                                 
+  > -----------------------------------------------------------------------------------------------------------
+! 464,468c477,485
+  <    ->  GroupAggregate
+  <          Group Key: date_trunc('minute'::text, "time")
+  <          ->  Index Scan using time_plain_plain_table on plain_table
+--- 338,365 ----
+  <                      ->  Index Scan using _hyper_3_5_chunk_time_plain_int on _hyper_3_5_chunk
+  < (10 rows)
+  ---
+! >    ->  Finalize GroupAggregate
+! >          Group Key: ((time_bucket(10, (_hyper_3_3_chunk."time" - 2)) + 2))
+! >          ->  Gather Merge
+! >                Workers Planned: 2
+! >                ->  Partial GroupAggregate
+! >                      Group Key: ((time_bucket(10, (_hyper_3_3_chunk."time" - 2)) + 2))
+! >                      ->  Sort
+! >                            Sort Key: ((time_bucket(10, (_hyper_3_3_chunk."time" - 2)) + 2)) DESC
+! >                            ->  Result
+! >                                  ->  Parallel Append
+! >                                        ->  Parallel Seq Scan on _hyper_3_3_chunk
+! >                                        ->  Parallel Seq Scan on _hyper_3_4_chunk
+! >                                        ->  Parallel Seq Scan on _hyper_3_5_chunk
+! >                                        ->  Parallel Seq Scan on hyper_1_int
+! > (15 rows)
+! 461,462c510,511
+  <                                           QUERY PLAN                                           
+  < -----------------------------------------------------------------------------------------------
+  ---
+  >                                                 QUERY PLAN                                                 
+  > -----------------------------------------------------------------------------------------------------------
+! 464,468c513,521
+  <    ->  GroupAggregate
+  <          Group Key: date_trunc('minute'::text, "time")
+  <          ->  Index Scan using time_plain_plain_table on plain_table
+
+======================================================================
+
