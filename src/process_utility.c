@@ -51,6 +51,11 @@
 #include "indexing.h"
 #include "trigger.h"
 #include "utils.h"
+#if PG11
+/* removed */
+#else
+#include <catalog/pg_constraint_fn.h>
+#endif
 
 void		_process_utility_init(void);
 void		_process_utility_fini(void);
@@ -320,10 +325,32 @@ vacuum_chunk(Hypertable *ht, Oid chunk_relid, void *arg)
 	VacuumCtx  *ctx = (VacuumCtx *) arg;
 	Chunk	   *chunk = chunk_get_by_relid(chunk_relid, ht->space->num_dimensions, true);
 
+#if PG11
+	List       *orels = ctx->stmt->rels;
+	ListCell   *lc;
+
+	foreach(lc, orels)
+	{
+		VacuumRelation *vrel = lfirst_node(VacuumRelation, lc);
+		vrel->relation->relname = NameStr(chunk->fd.table_name);
+		vrel->relation->schemaname = NameStr(chunk->fd.schema_name);
+	}
+	ExecVacuum(ctx->stmt, ctx->is_toplevel);
+	ctx->stmt->rels = orels;
+#else
 	ctx->stmt->relation->relname = NameStr(chunk->fd.table_name);
 	ctx->stmt->relation->schemaname = NameStr(chunk->fd.schema_name);
 	ExecVacuum(ctx->stmt, ctx->is_toplevel);
+#endif
 }
+
+/*
+commit 11d8d72c27a64ea4e30adce11cf6c4f3dd3e60db
+Author: Tom Lane <tgl@sss.pgh.pa.us>
+Date:   Tue Oct 3 18:53:44 2017 -0400
+
+    Allow multiple tables to be specified in one VACUUM or ANALYZE command.
+*/
 
 /* Vacuums each chunk of a hypertable */
 static bool
@@ -338,7 +365,56 @@ process_vacuum(Node *parsetree, ProcessUtilityContext context)
 	Oid			hypertable_oid;
 	Cache	   *hcache;
 	Hypertable *ht;
+#if PG11
 
+	if (stmt->rels == NIL)
+		/* Vacuum is for all tables */
+		return false;
+
+	{
+		ListCell   *lc;
+
+		PreventCommandDuringRecovery((stmt->options & VACOPT_VACUUM) ?
+								 "VACUUM" : "ANALYZE");
+		foreach(lc, stmt->rels)
+		{
+			VacuumRelation *vrel = lfirst_node(VacuumRelation, lc);
+			hypertable_oid = hypertable_relid(vrel->relation);
+
+			if (OidIsValid(hypertable_oid))
+			{
+				hcache = hypertable_cache_pin();
+				ht = hypertable_cache_get_entry(hcache, hypertable_oid);
+
+				/* allow vacuum to be cross-commit */
+				hcache->release_on_commit = false;
+				foreach_chunk(ht, vacuum_chunk, &ctx);
+				hcache->release_on_commit = true;
+
+				cache_release(hcache);
+
+			/*
+			 * You still want the parent to be vacuumed in order to update statistics
+			 * if necessary
+			 *
+			 * Note that in the VERBOSE output this will appear to re-analyze the
+			 * child tables. However, this actually just re-acquires the sample from
+			 * the child table to use this statistics in the parent table. It will
+			 * /not/ write the appropriate statistics in pg_stats for the child table,
+			 * so both the per-chunk analyze above and this parent-table vacuum run is
+			 * necessary. Later, we can optimize this further, if necessary.
+			 */
+				 vrel->relation->relname = NameStr(ht->fd.table_name);
+				 vrel->relation->schemaname = NameStr(ht->fd.schema_name);
+				 ExecVacuum(stmt, is_toplevel);
+			}
+			else
+			{
+				ExecVacuum(stmt, is_toplevel);
+			}
+		}
+	}
+#else
 	if (stmt->relation == NULL)
 		/* Vacuum is for all tables */
 		return false;
@@ -375,7 +451,7 @@ process_vacuum(Node *parsetree, ProcessUtilityContext context)
 	stmt->relation->relname = NameStr(ht->fd.table_name);
 	stmt->relation->schemaname = NameStr(ht->fd.schema_name);
 	ExecVacuum(stmt, is_toplevel);
-
+#endif
 	return true;
 }
 
