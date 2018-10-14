@@ -1,3 +1,7 @@
+-- Copyright (c) 2016-2018  Timescale, Inc. All Rights Reserved.
+--
+-- This file is licensed under the Apache License,
+-- see LICENSE-APACHE at the top level directory.
 -- Should expect an error when creating a hypertable from a partition
 \set ON_ERROR_STOP 0
 CREATE TABLE partitioned_ht_create(time timestamptz, temp float, device int) PARTITION BY RANGE (time);
@@ -10,9 +14,9 @@ CREATE TABLE partitioned_attachment_vanilla(time timestamptz, temp float, device
 CREATE TABLE attachment_hypertable(time timestamptz, temp float, device int);
 SELECT create_hypertable('attachment_hypertable', 'time');
 NOTICE:  adding not-null constraint to column "time"
- create_hypertable 
--------------------
- 
+         create_hypertable          
+------------------------------------
+ (1,public,attachment_hypertable,t)
 (1 row)
 
 ALTER TABLE partitioned_attachment_vanilla ATTACH PARTITION attachment_hypertable FOR VALUES FROM ('2016-07-01') TO ('2016-08-01');
