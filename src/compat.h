@@ -274,6 +274,9 @@ Date:   Tue Feb 14 17:34:19 2012 -0500
 
 // XXXX
 #if 0
+#define MakeTupleTableSlotComp() \
+	MakeTupleTableSlot()
+
 #define ExecInitExtraTupleSlotComp(a) \
 	ExecInitExtraTupleSlot(a)
 
@@ -306,6 +309,9 @@ Date:   Tue Feb 14 17:34:19 2012 -0500
 	 ExecBuildProjectionInfo((List *)ExecInitExpr((Expr *) tl, NULL), exprContext, slot, inputdesc)
 #define WaitLatchCompat(latch, wakeEvents, timeout) \
 	WaitLatch(latch, wakeEvents, timeout)
+
+#define MakeTupleTableSlotComp() \
+	MakeTupleTableSlot()
 
 #define ExecInitExtraTupleSlotComp(a) \
 	ExecInitExtraTupleSlot(a)
