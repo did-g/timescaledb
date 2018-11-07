@@ -234,6 +234,7 @@ chunk_index_select_tablespace(Relation htrel, Relation chunkrel)
 	return tablespace_oid;
 }
 
+#if PG11
 static Oid
 index_createCompat(Relation heapRelation,
                          const char *indexRelationName,
@@ -280,7 +281,7 @@ index_createCompat(Relation heapRelation,
 	return index_create(heapRelation, 
 						indexRelationName, 
 						indexRelationId, 
-#if 1
+#if PG11
 /* not until 
 commit 8b08f7d4820fd7a8ef6152a9dd8c6e3cb01e5f99 (HEAD)
 Author: Alvaro Herrera <alvherre@alvh.no-ip.org>
@@ -288,7 +289,7 @@ Date:   Fri Jan 19 11:49:22 2018 -0300
 */
 						 InvalidOid, /* parentIndexRelid */
 #endif
-#if 1
+#if PG11
 /* not until 
 commit eb7ed3f3063401496e4aa4bd68fa33f0be31a72f
 Author: Alvaro Herrera <alvherre@alvh.no-ip.org>
@@ -313,7 +314,9 @@ Date:   Mon Feb 19 16:59:37 2018 -0300
 //                         allow_system_table_mods, if_not_exists, NULL); 
                           allow_system_table_mods, is_internal, NULL); 
 }
-
+#else
+#define index_createCompat index_create
+#endif
 /*
  * Create a chunk index based on the configuration of the "parent" index.
  */
