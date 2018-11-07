@@ -521,10 +521,18 @@ void
 timescale_create_upper_paths_hook(PlannerInfo *root,
 								  UpperRelationKind stage,
 								  RelOptInfo *input_rel,
-								  RelOptInfo *output_rel)
+								  RelOptInfo *output_rel
+#if PG11
+								  , void *extra
+#endif
+								  )
 {
 	if (prev_create_upper_paths_hook != NULL)
-		prev_create_upper_paths_hook(root, stage, input_rel, output_rel);
+		prev_create_upper_paths_hook(root, stage, input_rel, output_rel
+#if PG11
+		, extra
+#endif
+		);
 
 	if (!extension_is_loaded() ||
 		guc_disable_optimizations ||

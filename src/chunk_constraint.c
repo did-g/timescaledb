@@ -33,6 +33,11 @@
 #include "errors.h"
 #include "process_utility.h"
 #include "compat.h"
+#if PG11
+/* removed */
+#else
+#include <catalog/pg_constraint_fn.h>
+#endif
 
 #define DEFAULT_EXTRA_CONSTRAINTS_SIZE 4
 
