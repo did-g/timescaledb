@@ -388,7 +388,7 @@ adjust_projections(ChunkInsertState *cis, ChunkDispatch *dispatch, Oid rowtype)
 												   chunk_desc);
 	}
 
-	if (rri->ri_onConflict && rri->ri_onConflictSetProj != NULL)
+	if (ri_isvalid(rri) && rri->ri_onConflictSetProj != NULL)
 	{
 		rri->ri_onConflictSetProj =
 			get_adjusted_projection_info_onconflicupdate(rri->ri_onConflictSetProj,

@@ -108,6 +108,7 @@ Date:   Mon Mar 26 10:43:54 2018 -0300
 
 pg compile 11 errors
 */
+#define ri_isvalid(a) ((a)->ri_onConflict)
 #define ri_onConflictSetProj ri_onConflict->oc_ProjInfo
 #define  ri_onConflictSetWhere ri_onConflict->oc_WhereClause
 
@@ -286,6 +287,8 @@ Date:   Tue Feb 14 17:34:19 2012 -0500
 
 #endif
 
+#define ri_isvalid(a) (1)
+
 #elif PG96
 
 #define ExecARInsertTriggersCompat(estate, result_rel_info, tuple, recheck_indexes) \
@@ -320,6 +323,7 @@ Date:   Tue Feb 14 17:34:19 2012 -0500
 #define BackgroundWorkerInitializeConnectionByOidComp(a, b) \
 	BackgroundWorkerInitializeConnectionByOid((a), (b))
 
+#define ri_isvalid(a) (1)
 #else
 
 #error "Unsupported PostgreSQL version"
