@@ -20,6 +20,7 @@
 #include "hypertable_cache.h"
 #include "dimension.h"
 #include "hypertable.h"
+#include "compat.h"
 
 static void
 chunk_dispatch_begin(CustomScanState *node, EState *estate, int eflags)
@@ -64,8 +65,6 @@ chunk_dispatch_exec(CustomScanState *node)
 		TupleDesc	tupdesc = slot->tts_tupleDescriptor;
 		EState	   *estate = node->ss.ps.state;
 		MemoryContext old;
-		ModifyTable *node = (ModifyTable *)state->parent->ps.plan;
-		// OnConflictAction onconflict = node->onConflictAction;
 
 		/* Switch to the executor's per-tuple memory context */
 		old = MemoryContextSwitchTo(GetPerTupleMemoryContext(estate));
@@ -96,7 +95,16 @@ chunk_dispatch_exec(CustomScanState *node)
 		 */
 		 // XXX
 		if (cis->arbiter_indexes != NIL)
+		{
+#if PG11
+			ModifyTable *node = (ModifyTable *)state->parent->ps.plan;
+			// OnConflictAction onconflict = node->onConflictAction;
+
 			node->arbiterIndexes = cis->arbiter_indexes;
+#else
+			state->parent->mt_arbiterindexes = cis->arbiter_indexes;
+#endif
+		}
 
 		/* slot for the "existing" tuple in ON CONFLICT UPDATE IS chunk schema */
 		if (cis->tup_conv_map != NULL && state->parent->mt_existing != NULL)
@@ -166,14 +174,19 @@ chunk_dispatch_state_set_parent(ChunkDispatchState *state, ModifyTableState *par
 {
 	ModifyTable *mt_plan;
 
+	state->parent = parent;
+#if PG11
 	// XXXX
+	{
 	ModifyTable *node = (ModifyTable *)parent->ps.plan;
 	OnConflictAction onconflict = node->onConflictAction;
-
-	state->parent = parent;
-
 	state->dispatch->arbiter_indexes = node->arbiterIndexes;
 	state->dispatch->on_conflict = onconflict;
+	}
+#else
+	state->dispatch->arbiter_indexes = parent->mt_arbiterindexes;
+	state->dispatch->on_conflict = parent->mt_onconflict;
+#endif
 	state->dispatch->cmd_type = parent->operation;
 
 	/*
