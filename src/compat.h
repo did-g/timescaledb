@@ -38,12 +38,9 @@
 
 /* //////////////////////////
 */
-#ifdef PG10_11
-
+#if PG10_11
 
 #if PG11
-#if 0
-#endif
 /* ***************************** 
 commit fb466d7b5dbe73f318324cada80203522f46401f
 Author: Tom Lane <tgl@sss.pgh.pa.us>
@@ -244,13 +241,30 @@ Date:   Tue Feb 14 17:34:19 2012 -0500
 #define adjust_appendrel_attrs(a, b, c) \
 	adjust_appendrel_attrs((a), (b), 1, &(c))
 
+
 #undef PG10
 #define PG10 (1)
+
+#elif PG10
+/* stuff in PG11 but not in PG10 */
+#define MakeTupleTableSlotComp() \
+	MakeTupleTableSlot()
+
+#define ExecInitExtraTupleSlotComp(a) \
+	ExecInitExtraTupleSlot(a)
+
+#define BackgroundWorkerInitializeConnectionComp(a,b) \
+	BackgroundWorkerInitializeConnection((a), (b))
+#define BackgroundWorkerInitializeConnectionByOidComp(a, b) \
+	BackgroundWorkerInitializeConnectionByOid((a), (b))
+
+#define ri_isvalid(a) (1)
+
 #endif
 #endif
 
 #if PG10
-
+/* stuff in PG11 and in PG10 */
 #define ExecARInsertTriggersCompat(estate, result_rel_info, tuple, recheck_indexes) \
 	ExecARInsertTriggers(estate, result_rel_info, tuple, recheck_indexes, NULL)
 #define ExecASInsertTriggersCompat(estate, result_rel_info) \
@@ -271,23 +285,6 @@ Date:   Tue Feb 14 17:34:19 2012 -0500
 	 ExecBuildProjectionInfo(tl, exprContext, slot, parent, inputdesc)
 #define WaitLatchCompat(latch, wakeEvents, timeout) \
 	WaitLatch(latch, wakeEvents, timeout, PG_WAIT_EXTENSION)
-
-// XXXX
-#if 0
-#define MakeTupleTableSlotComp() \
-	MakeTupleTableSlot()
-
-#define ExecInitExtraTupleSlotComp(a) \
-	ExecInitExtraTupleSlot(a)
-
-#define BackgroundWorkerInitializeConnectionComp(a,b) \
-	BackgroundWorkerInitializeConnection((a), (b))
-#define BackgroundWorkerInitializeConnectionByOidComp(a, b) \
-	BackgroundWorkerInitializeConnectionByOid((a), (b))
-
-#endif
-
-#define ri_isvalid(a) (1)
 
 #elif PG96
 
