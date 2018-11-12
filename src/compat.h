@@ -36,11 +36,24 @@
 #define TupleDescAttr(a, i) ((a)->attrs[(i)])
 #endif
 
+
 #ifdef PG10_11
 
 
 
 #if PG11
+
+/* *****************************
+commit 19c47e7c820241e1befd975cb4411af7d43e1309
+Author: Robert Haas <rhaas@postgresql.org>
+Date:   Fri Jan 5 15:18:03 2018 -0500
+
+    Factor error generation out of ExecPartitionCheck.
+*/
+#define  ExecConstraints(resultRelInfo, slot, estate) \
+	ExecConstraints(resultRelInfo, slot, estate, true);
+
+
 /* *****************************
 commit 4bd1994650fddf49e717e35f1930d62208845974
 Author: Tom Lane <tgl@sss.pgh.pa.us>
@@ -53,10 +66,10 @@ Date:   Mon Sep 18 15:21:23 2017 -0400
 #define adjust_appendrel_attrs(a, b, c) \
 	adjust_appendrel_attrs((a), (b), 1, &(c))
 
-#endif
-
 #undef PG10
 #define PG10 (1)
+#endif
+
 #if PG10
 #define ExecARInsertTriggersCompat(estate, result_rel_info, tuple, recheck_indexes) \
 	ExecARInsertTriggers(estate, result_rel_info, tuple, recheck_indexes, NULL)
